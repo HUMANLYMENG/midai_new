@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Collection</title>
+</head>
+
+<body>
+    <div class="header">
+        <button onclick="toggleSidebar()">Toggle Sidebar</button>
+        <!-- <a href="/add">Add</a> -->
+        <button onclick="showAddAlbumForm()">Add</button>
+        <a href="/">Home</a>
+    </div>
+    <div id="add-album-form-container" class="floating-form hidden">
+        <div class="form-header" id="drag-handle-add">
+            <h3>Add Album</h3>
+            <button onclick="closeAddAlbumForm()">X</button>
+        </div>
+        <form id="add-album-form" method="POST" action="{{ url_for('add_album') }}">
+            <h4>Manually Add Album</h4>
+            <label for="new-title">Title:</label>
+            <input type="text" id="new-title" name="title"><br>
+            <label for="new-artist">Artist:</label>
+            <input type="text" id="new-artist" name="artist"><br>
+            <label for="new-release_date">Release Date:</label>
+            <input type="text" id="new-release_date" name="release_date"><br>
+            <label for="new-genre">Genre:</label>
+            <input type="text" id="new-genre" name="genre"><br>
+            <label for="new-length">Length:</label>
+            <input type="text" id="new-length" name="length"><br>
+            <label for="new-label">Label:</label>
+            <input type="text" id="new-label" name="label"><br>
+            <label for="new-tag">Tag:</label>
+            <input type="text" id="new-tag" name="tag"><br>
+            <label for="new-comment">Comment:</label>
+            <input type="text" id="new-comment" name="comment"><br>
+            <label for="new-cover">Cover:</label>
+            <input type="text" id="new-cover" name="cover"><br><br>
+            <!-- <button type="button" onclick="saveNewAlbum()">Save</button> -->
+            <input type="submit" name="submit" value="Add Album">
+        </form>
+
+        <hr>
+
+        <h1>Upload New Albums CSV</h1>
+        <form method="POST" action="{{ url_for('add_album') }}" enctype="multipart/form-data">
+            <label for="file">Choose CSV File:</label><br>
+            <input type="file" id="file" name="file" accept=".csv"><br><br>
+            <input type="submit" name="submit" value="Upload CSV">
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <h2>My Collection</h2>
+            <div id="sort-options">
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select">
+                    <option value="default">Default</option>
+                    <option value="alphabet">Alphabet</option>
+                    <option value="genre">Genre</option>
+                    <option value="artist">Artist</option>
+                    <option value="label">Label</option>
+                </select>
+            </div>
+            <ul id="album-list">
+                {% for album in albums %}
+                <li class="album-item" data-id="{{ album.id }}" ondblclick="editAlbum(this)">
+                    {{ album.artist }} - {{ album.title }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="main">
+            <h2>Interactive Graph</h2>
+            <div id="graph" class="graph"></div>
+        </div>
+    </div>
+    <script src="/static/graph.js"></script>
+    <div id="edit-form-container" class="floating-form hidden">
+        <div class="form-header" id="drag-handle">
+            <h3>Edit Album</h3>
+            <button onclick="closeForm()">X</button>
+        </div>
+        <form id="edit-form">
+            <input type="hidden" id="album-id">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title"><br>
+            <label for="artist">Artist:</label>
+            <input type="text" id="artist" name="artist"><br>
+            <label for="release_date">Release Date:</label>
+            <input type="text" id="release_date" name="release_date"><br>
+            <label for="genre">Genre:</label>
+            <input type="text" id="genre" name="genre"><br>
+            <label for="length">Length:</label>
+            <input type="text" id="length" name="length"><br>
+            <label for="label">Label:</label>
+            <input type="text" id="label" name="label"><br>
+            <label for="tag">Tag:</label><br>
+            <input type="text" id="tag" name="tag"><br><br>
+            <label for="comment">Comment:</label><br>
+            <input type="text" id="comment" name="comment"><br><br>
+            <label for="cover">Cover:</label><br>
+            <input type="text" id="cover" name="cover"><br><br>
+            <button type="button" onclick="saveAlbum()">Save</button>
+            <button type="button" onclick="deleteAlbum()">Delete</button> <!-- 添加删除按钮 -->
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

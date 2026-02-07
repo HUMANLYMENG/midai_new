@@ -1,0 +1,43 @@
+{
+  "name": "midai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/client": "^6.0.0",
+    "album-art": "^4.0.0",
+    "bcryptjs": "^3.0.3",
+    "d3": "^7.9.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.468.0",
+    "next": "15.1.0",
+    "next-auth": "^5.0.0-beta.30",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^22.10.0",
+    "@types/papaparse": "^5.3.15",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "15.1.0",
+    "postcss": "^8.4.49",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.0"
+  }
+}

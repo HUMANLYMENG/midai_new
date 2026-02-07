@@ -1,0 +1,172 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* 修改 .header 样式以实现圆角长条效果 */
+.header {
+    position: fixed; /* 固定在页面顶部 */
+    top: 30px; /* 与页面顶部的空隙 */
+   right: 10px; /* 在页面水平中心 */
+/*   transform: translateX(-50%); /* 将自身水平居中 */
+/*   background-color: #333; /* 背景颜色 */
+/*   color: white;
+/*   padding: 10px 20px; /* 内边距，使导航栏更高 */
+/*   border-radius: 25px; /* 圆角效果 */
+/*   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 添加阴影以突出显示 */
+/*   z-index: 1000; /* 确保在其他内容之上 */
+/*   box-sizing: border-box; /* 确保内边距和边框被包含在宽度中 */
+}
+
+
+/* 修改 .header button 样式以匹配圆角效果 */
+.header button {
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 8px 15px; /* 内边距，使按钮更窄 */
+    border-radius: 20px; /* 圆角效果 */
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s; /* 平滑的背景色变化 */
+}
+
+.header button:hover {
+    background-color: #555; /* 鼠标悬停时的背景颜色 */
+}
+
+/* 修改 .header a 样式以调整链接 */
+.header a {
+    color: white;
+    text-decoration: none;
+    margin-left: 10px;
+    padding: 8px 15px; /* 内边距，使链接看起来像按钮 */
+    border-radius: 20px; /* 圆角效果 */
+    transition: background-color 0.3s; /* 平滑的背景色变化 */
+}
+
+.header a:hover {
+    background-color: #555; /* 鼠标悬停时的背景颜色 */
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.sidebar {
+    width: 25%;
+    background-color: #333;
+    color: white;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    transition: width 0.3s;
+}
+
+.sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.main {
+    width: 75%;
+    background-color: #222;
+    color: white;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+#album-list {
+    list-style-type: none;
+    padding: 0;
+    
+}
+
+#album-list li {
+    margin: 0; /* 移除默认的外边距 */
+    padding: 6px 0; /* 可选：添加一些内边距使列表项更好看 */
+    cursor: pointer;
+    color: white; /* 确保初始文本颜色为白色 */
+}
+
+.album-item {
+    padding: 10px;
+    text-indent: 10px; /* 增加文字的缩进，使其与背景分开 */
+    border-radius: 6px; /* 设置圆角 */
+    margin: 0; /* 移除列表项的外边距 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 平滑过渡效果 */
+}
+
+.album-item:hover {
+    background-color: rgba(240, 240, 240, 0.2); /* 增加透明度 */
+    color: black; /* 悬停时文字颜色变为黑色 */
+    cursor: pointer;
+}
+
+.album-item:active {
+    transform: scale(0.98); /* 点击时稍微缩小 */
+    transition: transform 0.1s ease;
+}
+
+.hidden {
+    display: none;
+}
+
+#graph {
+    width: 100%;
+    height: calc(100vh - 100px);
+    border: 1px solid white;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#graph svg {
+    width: 100%;
+    height: 100%;
+}
+
+.floating-form {
+    position: fixed;
+    top: 20px;
+    left: 25%;  /* 紧贴左边栏 */
+    background-color: #444;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;  /* 添加这行 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    max-width: 300px;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: grab; /* 添加这个样式来表示可拖拽 */
+}
+
+.form-header h3 {
+    margin: 0;
+}
+
+.form-header button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+#add-album-form-container {
+    width: 400px;
+}

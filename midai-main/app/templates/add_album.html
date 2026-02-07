@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Album</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', 'SimSun', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+    <h1>Add a New Album</h1>
+    <form method="POST" action="{{ url_for('add_album') }}">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title"><br>
+        <label for="artist">Artist:</label><br>
+        <input type="text" id="artist" name="artist"><br>
+        <label for="release_date">Release Date:</label><br>
+        <input type="text" id="release_date" name="release_date"><br>
+        <label for="genre">Genre:</label><br>
+        <input type="text" id="genre" name="genre"><br>
+        <label for="length">Length:</label><br>
+        <input type="text" id="length" name="length"><br>
+        <label for="label">Label:</label><br>
+        <input type="text" id="label" name="label"><br><br>
+        <label for="tag">Tag:</label><br>
+        <input type="text" id="tag" name="tag"><br><br>
+        <label for="comment">Comment:</label><br>
+        <input type="text" id="comment" name="comment"><br><br>
+        <label for="cover">Cover:</label><br>
+        <input type="text" id="comment" name="cover"><br><br>
+        <input type="submit" name="submit" value="Add Album">
+    </form>
+
+    <h1>Upload New Albums CSV</h1>
+    <form method="POST" action="{{ url_for('add_album') }}" enctype="multipart/form-data">
+        <label for="file">Choose CSV File:</label><br>
+        <input type="file" id="file" name="file" accept=".csv"><br><br>
+        <input type="submit" name="submit" value="Upload CSV">
+    </form>
+</body>
+</html>
