@@ -155,3 +155,40 @@ svg {
   transition-duration: 0.2s;
   transition-timing-function: ease;
 }
+
+/* Fix browser autofill color in dark mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-tertiary) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: var(--text-primary) !important;
+}
+
+/* Force text color on all inputs to ensure visibility */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"] {
+  color: var(--text-primary);
+}
+
+/* Dark mode input text color */
+html.dark input[type="text"],
+html.dark input[type="search"],
+html.dark input[type="email"],
+html.dark input[type="password"] {
+  color: #ffffff;
+  background-color: var(--bg-tertiary);
+}
+
+/* Light mode input text color */
+html.light input[type="text"],
+html.light input[type="search"],
+html.light input[type="email"],
+html.light input[type="password"] {
+  color: #1a202c;
+  background-color: var(--bg-tertiary);
+}

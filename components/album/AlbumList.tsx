@@ -174,7 +174,11 @@ export function AlbumList({
             placeholder="Search albums, artists, genres..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-background-tertiary/50 border border-border-color text-sm text-foreground-primary placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-border-color text-sm placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+            style={{
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)'
+            }}
           />
         </div>
 

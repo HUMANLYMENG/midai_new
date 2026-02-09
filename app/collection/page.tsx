@@ -285,18 +285,23 @@ export default function CollectionPage() {
         <ThemeToggle />
         {/* 用户信息 */}
         {session ? (
-          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border-color">
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border-color min-w-0 overflow-hidden">
             {session.user?.image ? (
               <img
                 src={session.user.image}
-                alt={session.user.name || 'User'}
+                alt=""
                 className="w-6 h-6 rounded-full flex-shrink-0"
-                title={session.user.name || session.user.email || ''}
+                onError={(e) => {
+                  // Hide image on error to avoid showing alt text
+                  e.currentTarget.style.display = 'none';
+                }}
               />
-            ) : (
-              <User size={16} className="text-foreground-muted flex-shrink-0" />
-            )}
-            <span className="text-sm text-foreground-secondary hidden lg:inline max-w-[100px] truncate">
+            ) : null}
+            <User size={16} className="text-foreground-muted flex-shrink-0" />
+            <span
+              className="text-sm text-foreground-secondary hidden sm:inline-block max-w-[120px] truncate"
+              title={session.user?.name || session.user?.email || ''}
+            >
               {session.user?.name || session.user?.email}
             </span>
             <button
