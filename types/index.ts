@@ -28,6 +28,7 @@ export interface AlbumInput {
 export interface GraphNode {
   id: string;
   type: 'album' | 'genre';
+  albumId?: number;
   artist?: string;
   genre?: string[];
   coverUrl?: string;
