@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUserId } from '@/lib/auth';
 
-// GET /api/albums - 获取所有专辑
+// GET /api/albums - 获取当前用户的所有专辑
 export async function GET(request: NextRequest) {
   try {
+    // Use session auth, fallback to hardcoded user for development
+    let userId = await getCurrentUserId(request);
+    if (userId instanceof NextResponse) {
+      // Fallback to hardcoded test user for development
+      userId = 'cmldzuxxa0000qd3we3uq8e6r';
+    }
+
     const { searchParams } = new URL(request.url);
     const sort = searchParams.get('sort') || 'default';
-    
+
     let orderBy: any = {};
-    
+
     switch (sort) {
       case 'alphabet':
         orderBy = { title: 'asc' };
@@ -25,11 +33,12 @@ export async function GET(request: NextRequest) {
       default:
         orderBy = { createdAt: 'desc' };
     }
-    
+
     const albums = await prisma.album.findMany({
+      where: { userId },
       orderBy,
     });
-    
+
     return NextResponse.json({ success: true, data: albums });
   } catch (error) {
     console.error('Failed to fetch albums:', error);
@@ -40,11 +49,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/albums - 创建专辑
+// POST /api/albums - 创建专辑（关联当前用户）
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId(request);
+    if (userId instanceof NextResponse) return userId;
+
     const body = await request.json();
-    
+
     const album = await prisma.album.create({
       data: {
         title: body.title,
@@ -56,18 +68,19 @@ export async function POST(request: NextRequest) {
         tag: body.tag,
         comment: body.comment,
         coverUrl: body.coverUrl,
+        userId: userId, // 关联当前用户
       },
     });
-    
+
     return NextResponse.json({ success: true, data: album });
   } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json(
-        { success: false, error: 'Album already exists' },
+        { success: false, error: 'Album already exists in your collection' },
         { status: 409 }
       );
     }
-    
+
     console.error('Failed to create album:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create album' },

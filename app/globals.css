@@ -72,8 +72,9 @@ html.light {
   }
   
   .nav-capsule {
-    @apply fixed top-6 left-1/2 -translate-x-1/2 z-50;
-    @apply flex items-center gap-1 px-2 py-2;
+    @apply fixed top-4 left-1/2 -translate-x-1/2 z-50;
+    @apply flex items-center gap-2 px-4 py-2;
+    @apply max-w-[90vw];
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

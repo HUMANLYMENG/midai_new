@@ -189,7 +189,7 @@ export function ForceGraph({ albums, onNodeClick, highlightedAlbumId }: ForceGra
     // 发光层
     nodeGroup.append('circle')
       .attr('r', d => (d.r || 18) + 3)
-      .attr('fill', d => d.type === 'genre' ? d.color : 'transparent')
+      .attr('fill', d => d.type === 'genre' ? (d.color || '#888') : 'transparent')
       .attr('opacity', d => d.type === 'genre' ? 0.2 : 0)
       .style('filter', 'blur(4px)');
 
@@ -197,13 +197,13 @@ export function ForceGraph({ albums, onNodeClick, highlightedAlbumId }: ForceGra
     nodeGroup.append('circle')
       .attr('class', 'main-circle')
       .attr('r', d => d.r || 18)
-      .attr('fill', d => d.type === 'genre' ? d.color : '#252a3d')
-      .attr('stroke', d => d.type === 'genre' ? d.color : 'rgba(150, 180, 220, 0.6)')
+      .attr('fill', d => d.type === 'genre' ? (d.color || '#888') : '#252a3d')
+      .attr('stroke', d => d.type === 'genre' ? (d.color || '#888') : 'rgba(150, 180, 220, 0.6)')
       .attr('stroke-width', d => d.type === 'album' ? 2 : 0)
-      .style('filter', d => d.type === 'genre' ? `drop-shadow(0 0 8px ${d.color})` : 'drop-shadow(0 0 4px rgba(100,150,255,0.3))');
+      .style('filter', d => d.type === 'genre' ? `drop-shadow(0 0 8px ${d.color || '#888'})` : 'drop-shadow(0 0 4px rgba(100,150,255,0.3))');
 
     // 封面
-    nodeGroup.filter(d => d.type === 'album' && d.coverUrl)
+    nodeGroup.filter(d => d.type === 'album' && !!d.coverUrl)
       .append('image')
       .attr('xlink:href', d => d.coverUrl || '')
       .attr('x', d => -(d.r || 18))
@@ -240,7 +240,7 @@ export function ForceGraph({ albums, onNodeClick, highlightedAlbumId }: ForceGra
         d.fy = null;
       });
 
-    nodeGroup.call(drag);
+    nodeGroup.call(drag as any);
 
     // 交互
     nodeGroup
@@ -292,7 +292,9 @@ export function ForceGraph({ albums, onNodeClick, highlightedAlbumId }: ForceGra
     // 初始缩放
     svg.call(zoom.transform, d3.zoomIdentity);
 
-    return () => simulation.stop();
+    return () => {
+      simulation.stop();
+    };
   }, [albums, width, height]);
 
   // 高亮

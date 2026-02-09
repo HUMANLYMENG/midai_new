@@ -1,28 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getCurrentUserId } from '@/lib/auth';
 import Papa from 'papaparse';
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId(request);
+    if (userId instanceof NextResponse) return userId;
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json(
         { success: false, error: 'No file provided' },
         { status: 400 }
       );
     }
-    
+
     if (!file.name.endsWith('.csv')) {
       return NextResponse.json(
         { success: false, error: 'Only CSV files are supported' },
         { status: 400 }
       );
     }
-    
+
     const text = await file.text();
-    
+
     const results = Papa.parse(text, {
       header: true,
       skipEmptyLines: true,
@@ -50,23 +54,23 @@ export async function POST(request: NextRequest) {
         return headerMap[header.toLowerCase().trim()] || header;
       },
     });
-    
+
     if (results.errors.length > 0) {
       console.error('CSV parsing errors:', results.errors);
     }
-    
+
     const albums = results.data as any[];
     let imported = 0;
     let skipped = 0;
     const errors: string[] = [];
-    
+
     for (const row of albums) {
       try {
         if (!row.title || !row.artist) {
           skipped++;
           continue;
         }
-        
+
         await prisma.album.create({
           data: {
             title: row.title,
@@ -78,9 +82,10 @@ export async function POST(request: NextRequest) {
             tag: row.tag || null,
             comment: row.comment || null,
             coverUrl: row.coverUrl || null,
+            userId: userId, // 关联当前用户
           },
         });
-        
+
         imported++;
       } catch (error: any) {
         if (error.code === 'P2002') {
@@ -90,7 +95,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }
-    
+
     return NextResponse.json({
       success: true,
       data: {

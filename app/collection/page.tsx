@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Album, AlbumInput, SortOption } from '@/types';
 import { AlbumList } from '@/components/album/AlbumList';
 import { AlbumForm } from '@/components/album/AlbumForm';
@@ -9,7 +11,7 @@ import { ImportModal } from '@/components/album/ImportModal';
 import { ForceGraph } from '@/components/graph/ForceGraph';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw, LogOut, User, MoreVertical } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface CoverStatus {
@@ -26,6 +28,8 @@ interface BatchProgress {
 }
 
 export default function CollectionPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [sort, setSort] = useState<SortOption>('default');
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
@@ -42,23 +46,40 @@ export default function CollectionPage() {
     message: '',
   });
   const [showBatchModal, setShowBatchModal] = useState(false);
+  const [imageRefreshKey, setImageRefreshKey] = useState(0);
+
+  // 检查登录状态（开发测试时禁用跳转）
+  // useEffect(() => {
+  //   if (status === 'unauthenticated') {
+  //     router.push('/auth/signin');
+  //   }
+  // }, [status, router]);
 
   const fetchAlbums = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/albums?sort=${sort}`);
+      const res = await fetch(`/api/albums?sort=${sort}`, { cache: 'no-store' });
       const data = await res.json();
-      if (data.success) setAlbums(data.data);
+      if (data.success) {
+        // 给 coverUrl 添加时间戳来绕过浏览器缓存
+        const albumsWithTimestamp = data.data.map((album: Album) => ({
+          ...album,
+          coverUrl: album.coverUrl
+            ? `${album.coverUrl}${album.coverUrl.includes('?') ? '&' : '?'}_t=${imageRefreshKey}`
+            : null,
+        }));
+        setAlbums(albumsWithTimestamp);
+      }
     } catch (error) {
       console.error('Failed to fetch albums:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [sort]);
+  }, [sort, imageRefreshKey]);
 
   const fetchCoverStatus = useCallback(async () => {
     try {
-      const res = await fetch('/api/covers/batch');
+      const res = await fetch('/api/covers/batch', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) setCoverStatus(data.data);
     } catch (error) {
@@ -121,11 +142,15 @@ export default function CollectionPage() {
   };
 
   const handleBatchFetchCovers = async (force: boolean = false) => {
+    const totalToFetch = force
+      ? (coverStatus?.total || 0)
+      : (coverStatus?.withoutCover || 0);
+
     setBatchProgress({
       isRunning: true,
       current: 0,
-      total: coverStatus?.withoutCover || 0,
-      message: 'Fetching covers...',
+      total: totalToFetch,
+      message: force ? 'Refreshing all covers...' : 'Fetching missing covers...',
     });
     setShowBatchModal(true);
 
@@ -144,7 +169,8 @@ export default function CollectionPage() {
           total: data.data.total,
           message: `Completed! Updated: ${data.data.updated}, Failed: ${data.data.failed}`,
         });
-        fetchAlbums();
+        // 递增刷新 key 来强制图片重新加载
+        setImageRefreshKey(prev => prev + 1);
         fetchCoverStatus();
       } else {
         setBatchProgress({
@@ -191,6 +217,38 @@ export default function CollectionPage() {
     }
   }, [fetchAlbums, fetchCoverStatus, selectedAlbum, highlightedAlbumId]);
 
+  // 单个专辑获取封面
+  const handleAlbumFetchCover = useCallback(async (album: Album) => {
+    try {
+      console.log(`[Collection] Fetching cover for: ${album.title}`);
+      const res = await fetch('/api/covers/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ albumIds: [album.id], force: true }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const result = data.data.results[0];
+        if (result?.status === 'success') {
+          console.log(`[Collection] Cover fetched successfully: ${result.coverUrl}`);
+          setImageRefreshKey(prev => prev + 1);
+          fetchAlbums();
+          fetchCoverStatus();
+        } else {
+          console.log(`[Collection] Cover fetch failed: ${result?.message || 'Unknown error'}`);
+          alert(`Could not find cover for "${album.title}"`);
+        }
+      } else {
+        console.error('[Collection] Cover fetch API error:', data.error);
+        alert('Failed to fetch cover');
+      }
+    } catch (error) {
+      console.error('[Collection] Failed to fetch cover:', error);
+      alert('Network error while fetching cover');
+    }
+  }, [fetchAlbums, fetchCoverStatus]);
+
   const handleNodeClick = useCallback((album: Album) => {
     setSelectedAlbum(album);
     setHighlightedAlbumId(album.id);
@@ -203,6 +261,20 @@ export default function CollectionPage() {
     setIsFormOpen(true);
   };
 
+  // 显示加载状态
+  if (status === 'loading') {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background-primary">
+        <Disc3 size={48} className="animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  // 未登录也渲染页面（开发测试用）
+  // if (!session) {
+  //   return null;
+  // }
+
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background-primary">
       {/* Navigation */}
@@ -211,10 +283,39 @@ export default function CollectionPage() {
         <Link href="/collection" className="nav-item active">Collection</Link>
         <div className="w-px h-6 bg-border-color mx-1" />
         <ThemeToggle />
+        {/* 用户信息 */}
+        {session ? (
+          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border-color">
+            {session.user?.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className="w-6 h-6 rounded-full flex-shrink-0"
+                title={session.user.name || session.user.email || ''}
+              />
+            ) : (
+              <User size={16} className="text-foreground-muted flex-shrink-0" />
+            )}
+            <span className="text-sm text-foreground-secondary hidden lg:inline max-w-[100px] truncate">
+              {session.user?.name || session.user?.email}
+            </span>
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="p-1.5 rounded-lg hover:bg-background-tertiary transition-colors flex-shrink-0"
+              title="Sign out"
+            >
+              <LogOut size={14} className="text-foreground-muted" />
+            </button>
+          </div>
+        ) : (
+          <Link href="/auth/signin" className="nav-item text-xs">
+            Sign In
+          </Link>
+        )}
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden pt-20 px-4 pb-4">
+      <main className="flex-1 flex overflow-hidden pt-24 px-4 pb-4">
         {/* Sidebar */}
         <AnimatePresence mode="wait">
           {isSidebarOpen && (
@@ -232,6 +333,7 @@ export default function CollectionPage() {
                 onAlbumClick={handleAlbumClick}
                 onAlbumEdit={handleAlbumEdit}
                 onAlbumDelete={handleAlbumDelete}
+                onAlbumFetchCover={handleAlbumFetchCover}
                 selectedAlbumId={highlightedAlbumId}
               />
             </motion.aside>
@@ -242,7 +344,7 @@ export default function CollectionPage() {
         <div className="flex-1 h-full relative min-w-0">
           {/* Toolbar */}
           <div className="absolute top-0 right-0 z-10 flex items-center gap-2">
-            {/* 批量获取封面按钮 */}
+            {/* 批量获取封面按钮 - 当有需要时显示 */}
             {coverStatus && coverStatus.withoutCover > 0 && (
               <Button
                 variant="secondary"
@@ -250,6 +352,7 @@ export default function CollectionPage() {
                 onClick={() => handleBatchFetchCovers(false)}
                 disabled={batchProgress.isRunning}
                 className="flex items-center gap-1"
+                title="获取缺失封面的专辑"
               >
                 {batchProgress.isRunning ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -259,6 +362,26 @@ export default function CollectionPage() {
                 Get {coverStatus.withoutCover} Covers
               </Button>
             )}
+            {/* 刷新所有封面按钮 - 始终显示 */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                if (confirm('确定要重新获取所有专辑封面吗？这将覆盖已有的封面。')) {
+                  handleBatchFetchCovers(true);
+                }
+              }}
+              disabled={batchProgress.isRunning}
+              className="flex items-center gap-1"
+              title="强制重新获取所有专辑封面"
+            >
+              {batchProgress.isRunning ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <RefreshCw size={14} />
+              )}
+              Refresh All
+            </Button>
             <Button variant="secondary" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </Button>
