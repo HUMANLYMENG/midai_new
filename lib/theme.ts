@@ -25,18 +25,7 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => {
         const resolved = theme === 'system' ? getSystemTheme() : theme;
         set({ theme, resolvedTheme: resolved });
-        
-        // 应用到 document
-        if (typeof document !== 'undefined') {
-          const root = document.documentElement;
-          if (resolved === 'dark') {
-            root.classList.add('dark');
-            root.classList.remove('light');
-          } else {
-            root.classList.add('light');
-            root.classList.remove('dark');
-          }
-        }
+        // Note: layout.tsx 固定使用 dark 主题，这里只更新状态
       },
       
       toggleTheme: () => {
@@ -47,28 +36,12 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'midai-theme',
-      onRehydrateStorage: () => (state) => {
-        // 恢复时重新应用主题
-        if (state) {
-          state.setTheme(state.theme);
-        }
-      },
+      // 恢复时不再修改 DOM，避免 hydration 不匹配
     }
   )
 );
 
-// 初始化主题
+// 初始化主题（空实现，避免修改 DOM）
 export function initTheme() {
-  if (typeof document === 'undefined') return;
-  
-  const stored = localStorage.getItem('midai-theme');
-  const theme = stored ? JSON.parse(stored).state.theme as Theme : 'dark';
-  const resolved = theme === 'system' ? getSystemTheme() : theme;
-  
-  const root = document.documentElement;
-  if (resolved === 'dark') {
-    root.classList.add('dark');
-  } else {
-    root.classList.add('light');
-  }
+  // layout.tsx 已固定 dark 主题，无需初始化
 }

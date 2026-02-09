@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
 import { findBestCover } from '@/lib/cover';
 
 // POST /api/covers/batch - 批量获取专辑封面（只能处理自己的专辑）
@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
     let userId = await getCurrentUserId(request);
     // Fallback for development if not authenticated
     if (userId instanceof NextResponse) {
-      console.log('[Covers Batch] Using fallback test user ID');
-      userId = 'cmldzuxxa0000qd3we3uq8e6r';
+      console.log('[Covers Batch] Using fallback dev user');
+      const defaultUser = await getOrCreateDefaultUser();
+      userId = defaultUser.id;
     }
 
     console.log('[Covers Batch] User ID:', userId);
@@ -149,8 +150,9 @@ export async function GET(request: NextRequest) {
     let userId = await getCurrentUserId(request);
     // Fallback for development if not authenticated
     if (userId instanceof NextResponse) {
-      console.log('[Covers Batch] Using fallback test user ID for status');
-      userId = 'cmldzuxxa0000qd3we3uq8e6r';
+      console.log('[Covers Batch] Using fallback dev user for status');
+      const defaultUser = await getOrCreateDefaultUser();
+      userId = defaultUser.id;
     }
 
     console.log('[Covers Batch] Status check for user:', userId);

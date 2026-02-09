@@ -283,40 +283,6 @@ export default function CollectionPage() {
         <Link href="/collection" className="nav-item active">Collection</Link>
         <div className="w-px h-6 bg-border-color mx-1" />
         <ThemeToggle />
-        {/* 用户信息 */}
-        {session ? (
-          <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border-color min-w-0 overflow-hidden">
-            {session.user?.image ? (
-              <img
-                src={session.user.image}
-                alt=""
-                className="w-6 h-6 rounded-full flex-shrink-0"
-                onError={(e) => {
-                  // Hide image on error to avoid showing alt text
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : null}
-            <User size={16} className="text-foreground-muted flex-shrink-0" />
-            <span
-              className="text-sm text-foreground-secondary hidden sm:inline-block max-w-[120px] truncate"
-              title={session.user?.name || session.user?.email || ''}
-            >
-              {session.user?.name || session.user?.email}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="p-1.5 rounded-lg hover:bg-background-tertiary transition-colors flex-shrink-0"
-              title="Sign out"
-            >
-              <LogOut size={14} className="text-foreground-muted" />
-            </button>
-          </div>
-        ) : (
-          <Link href="/auth/signin" className="nav-item text-xs">
-            Sign In
-          </Link>
-        )}
       </nav>
 
       {/* Main Content */}
@@ -348,7 +314,7 @@ export default function CollectionPage() {
         {/* Graph Area - 填满剩余空间 */}
         <div className="flex-1 h-full relative min-w-0">
           {/* Toolbar */}
-          <div className="absolute top-0 right-0 z-10 flex items-center gap-2">
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
             {/* 批量获取封面按钮 - 当有需要时显示 */}
             {coverStatus && coverStatus.withoutCover > 0 && (
               <Button

@@ -31,10 +31,10 @@ export async function requireAuth() {
 }
 
 /**
- * 获取或创建默认用户（用于数据迁移）
+ * 获取或创建默认用户（用于开发测试）
  */
 export async function getOrCreateDefaultUser() {
-  const defaultEmail = 'legacy@midai.app'
+  const defaultEmail = 'dev@midai.local'
 
   let user = await prisma.user.findUnique({
     where: { email: defaultEmail }
@@ -44,7 +44,7 @@ export async function getOrCreateDefaultUser() {
     user = await prisma.user.create({
       data: {
         email: defaultEmail,
-        name: 'Legacy User',
+        name: 'Dev User',
       }
     })
   }

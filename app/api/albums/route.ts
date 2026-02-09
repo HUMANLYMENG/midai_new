@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
 
 // GET /api/albums - 获取当前用户的所有专辑
 export async function GET(request: NextRequest) {
   try {
-    // Use session auth, fallback to hardcoded user for development
+    // Use session auth, fallback to default user for development
     let userId = await getCurrentUserId(request);
     if (userId instanceof NextResponse) {
-      // Fallback to hardcoded test user for development
-      userId = 'cmldzuxxa0000qd3we3uq8e6r';
+      // Fallback to default dev user
+      const defaultUser = await getOrCreateDefaultUser();
+      userId = defaultUser.id;
     }
 
     const { searchParams } = new URL(request.url);
@@ -52,8 +53,12 @@ export async function GET(request: NextRequest) {
 // POST /api/albums - 创建专辑（关联当前用户）
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getCurrentUserId(request);
-    if (userId instanceof NextResponse) return userId;
+    let userId = await getCurrentUserId(request);
+    // Fallback for development if not authenticated
+    if (userId instanceof NextResponse) {
+      const defaultUser = await getOrCreateDefaultUser();
+      userId = defaultUser.id;
+    }
 
     const body = await request.json();
 
