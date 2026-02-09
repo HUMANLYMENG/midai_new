@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -30,7 +30,7 @@ interface BatchProgress {
 export default function CollectionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [albums, setAlbums] = useState<Album[]>([]);
+
   const [sort, setSort] = useState<SortOption>('default');
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [highlightedAlbumId, setHighlightedAlbumId] = useState<number | null>(null);
@@ -55,10 +55,14 @@ export default function CollectionPage() {
   //   }
   // }, [status, router]);
 
+  // 原始专辑数据（用于图表，不随排序变化）
+  const [rawAlbums, setRawAlbums] = useState<Album[]>([]);
+
   const fetchAlbums = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/albums?sort=${sort}`, { cache: 'no-store' });
+      // 获取原始数据（不排序）
+      const res = await fetch('/api/albums', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
         // 给 coverUrl 添加时间戳来绕过浏览器缓存
@@ -68,14 +72,34 @@ export default function CollectionPage() {
             ? `${album.coverUrl}${album.coverUrl.includes('?') ? '&' : '?'}_t=${imageRefreshKey}`
             : null,
         }));
-        setAlbums(albumsWithTimestamp);
+        setRawAlbums(albumsWithTimestamp);
       }
     } catch (error) {
       console.error('Failed to fetch albums:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [sort, imageRefreshKey]);
+  }, [imageRefreshKey]);
+
+  // 根据排序选项生成列表用的专辑数据
+  const sortedAlbums = useMemo(() => {
+    if (!sort || sort === 'default') return rawAlbums;
+    
+    return [...rawAlbums].sort((a, b) => {
+      switch (sort) {
+        case 'alphabet':
+          return a.title.localeCompare(b.title);
+        case 'genre':
+          return (a.genre || '').localeCompare(b.genre || '');
+        case 'artist':
+          return a.artist.localeCompare(b.artist);
+        case 'label':
+          return (a.label || '').localeCompare(b.label || '');
+        default:
+          return 0;
+      }
+    });
+  }, [rawAlbums, sort]);
 
   const fetchCoverStatus = useCallback(async () => {
     try {
@@ -298,7 +322,7 @@ export default function CollectionPage() {
               className="h-full rounded-2xl overflow-hidden bg-background-secondary/50 backdrop-blur-sm border border-border-color mr-4 flex-shrink-0"
             >
               <AlbumList
-                albums={albums}
+                albums={sortedAlbums}
                 sort={sort}
                 onSortChange={setSort}
                 onAlbumClick={handleAlbumClick}
@@ -371,7 +395,7 @@ export default function CollectionPage() {
             </div>
           ) : (
             <ForceGraph
-              albums={albums}
+              albums={rawAlbums}
               onNodeClick={handleNodeClick}
               highlightedAlbumId={highlightedAlbumId}
             />
