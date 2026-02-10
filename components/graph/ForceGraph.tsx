@@ -2,15 +2,14 @@
 
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import * as d3 from 'd3';
-import { GraphNode, GraphLink, Album, Track, CollectionItemType } from '@/types';
+import { GraphNode, GraphLink, Album, CollectionItemType } from '@/types';
 import { parseGenres, getGenreColor } from '@/lib/genres';
 import { GraphLegend } from './GraphLegend';
-import { ZoomIn, ZoomOut, Maximize, RefreshCw, Loader2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, RefreshCw, Loader2, Home } from 'lucide-react';
 
 interface ForceGraphProps {
   albums: Album[];
-  tracks?: Track[];
-  onNodeClick?: (item: Album | Track) => void;
+  onNodeClick?: (item: Album) => void;
   highlightedItemId?: number | null;
   highlightedItemType?: CollectionItemType | null;
   onReloadCovers?: () => void;
@@ -32,6 +31,7 @@ export function ForceGraph({
   const nodeGroupsRef = useRef<any>(null);
   const linksRef = useRef<any>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const transformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
   
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
@@ -44,26 +44,34 @@ export function ForceGraph({
   useEffect(() => {
     if (highlightedItemType === 'album' && highlightedItemId) {
       setSelectedAlbumId(highlightedItemId);
-    } else if (highlightedItemType === 'track') {
-      // 单曲不显示在图谱中，只清除专辑高亮
-      setSelectedAlbumId(null);
+      // 高亮时移动视口到该节点
+      const albumNodeId = `album-${highlightedItemId}`;
+      const node = nodes.find(n => n.id === albumNodeId);
+      if (node && zoomRef.current && svgRef.current) {
+        const transform = d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(1.2)
+          .translate(-node.x!, -node.y!);
+        d3.select(svgRef.current)
+          .transition().duration(500)
+          .call(zoomRef.current.transform, transform);
+      }
     }
-  }, [highlightedItemId, highlightedItemType]);
+  }, [highlightedItemId, highlightedItemType, width, height]);
 
-  // 准备数据 - 只包含专辑和流派
+  // 准备数据
   const { nodes, links, genres } = useMemo(() => {
     const graphNodes: GraphNode[] = [];
     const graphLinks: GraphLink[] = [];
     const genreSet = new Set<string>();
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // 创建专辑节点
+    // 创建专辑节点 - 初始位置在中心附近
     albums.forEach((album, i) => {
       const albumGenres = parseGenres(album.genre);
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 80;
+      
+      // 使用螺旋布局作为初始位置
+      const angle = i * 0.5; // 每个节点间隔 0.5 弧度
+      const radius = 30 + Math.sqrt(i) * 25; // 螺旋向外
 
       graphNodes.push({
         id: `album-${album.id}`,
@@ -73,8 +81,8 @@ export function ForceGraph({
         genre: albumGenres,
         coverUrl: album.coverUrl,
         r: 18,
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle),
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle),
       });
 
       albumGenres.forEach((genre) => {
@@ -86,11 +94,11 @@ export function ForceGraph({
       });
     });
 
-    // 流派节点
+    // 流派节点 - 放在更中心的位置
     Array.from(genreSet).forEach((genre, i) => {
       const count = genreSet.size;
       const angle = (i / count) * Math.PI * 2;
-      const radius = 30 + (i % 3) * 15;
+      const radius = 80; // 流派节点更靠近中心
 
       graphNodes.push({
         id: `genre-${genre}`,
@@ -98,13 +106,13 @@ export function ForceGraph({
         genre: [genre],
         color: getGenreColor(genre),
         r: 12,
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle),
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle),
       });
     });
 
     return { nodes: graphNodes, links: graphLinks, genres: Array.from(genreSet) };
-  }, [albums, width, height]);
+  }, [albums]);
 
   // 初始化
   useEffect(() => {
@@ -112,67 +120,50 @@ export function ForceGraph({
 
     const svg = d3.select(svgRef.current)
       .attr('width', width)
-      .attr('height', height)
-      .attr('viewBox', [0, 0, width, height]);
+      .attr('height', height);
 
     svg.selectAll('*').remove();
 
-    // 网格背景
-    const gridGroup = svg.append('g').style('opacity', 0.05);
-    const gridSize = 40;
-    for (let x = 0; x <= width; x += gridSize) {
-      gridGroup.append('line').attr('x1', x).attr('y1', 0).attr('x2', x).attr('y2', height).attr('stroke', 'var(--text-primary)');
-    }
-    for (let y = 0; y <= height; y += gridSize) {
-      gridGroup.append('line').attr('x1', 0).attr('y1', y).attr('x2', width).attr('y2', y).attr('stroke', 'var(--text-primary)');
-    }
-
-    // 主容器
+    // 主容器 - 使用无限大的组
     const g = svg.append('g');
     gRef.current = g;
 
-    // 缩放行为
+    // 缩放行为 - 允许更大的缩放范围
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.3, 4])
+      .scaleExtent([0.1, 5])
       .on('zoom', (event) => {
+        transformRef.current = event.transform;
         g.attr('transform', event.transform);
       });
 
     zoomRef.current = zoom;
     svg.call(zoom);
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // 力仿真
+    // 力仿真 - Obsidian 风格的柔和力
     const simulation = d3.forceSimulation<GraphNode>(nodes)
       .force('link', d3.forceLink<GraphNode, GraphLink>(links)
         .id(d => d.id)
-        .distance(60)
-        .strength(0.5)
+        .distance(100) // 更大的连接距离
+        .strength(0.3) // 更弱的连接力，让节点更自由
       )
       .force('charge', d3.forceManyBody()
-        .strength(-200)
-        .distanceMax(Math.min(width, height) * 0.4)
+        .strength(-150) // 适中的排斥力
+        .distanceMax(500) // 限制排斥距离，避免无限飞散
       )
-      .force('center', d3.forceCenter(centerX, centerY).strength(0.15))
+      // 中心引力 - 让所有节点保持在中心附近，但不强制
+      .force('center', d3.forceCenter(0, 0).strength(0.05))
+      // 碰撞检测 - 防止节点重叠
       .force('collision', d3.forceCollide<GraphNode>()
-        .radius(d => (d.r || 18) + 5)
-        .strength(0.8)
+        .radius(d => (d.r || 18) + 10)
+        .strength(0.7)
       )
-      .force('boundary', () => {
-        const margin = 50;
-        nodes.forEach(node => {
-          const r = node.r || 18;
-          if (node.x! < margin + r) node.vx! += 0.8;
-          if (node.x! > width - margin - r) node.vx! -= 0.8;
-          if (node.y! < margin + r) node.vy! += 0.8;
-          if (node.y! > height - margin - r) node.vy! -= 0.8;
-        });
-      })
-      .velocityDecay(0.4)
-      .alpha(1)
-      .alphaDecay(0.02)
+      // 向心引力 - 让远离中心的节点慢慢被拉回来
+      .force('radial', d3.forceRadial(200, 0, 0)
+        .strength(0.02) // 非常弱的径向力
+      )
+      .velocityDecay(0.3) // 更低的速度衰减，让运动更流畅
+      .alpha(0.3) // 初始较低的 alpha
+      .alphaDecay(0.005) // 非常慢的衰减，让布局更自然
       .alphaMin(0.001);
 
     simulationRef.current = simulation;
@@ -183,7 +174,7 @@ export function ForceGraph({
       .data(links)
       .join('line')
       .attr('class', 'graph-link')
-      .attr('stroke', 'rgba(100, 180, 255, 0.5)')
+      .attr('stroke', 'rgba(100, 180, 255, 0.4)')
       .attr('stroke-width', 1.5);
 
     linksRef.current = link;
@@ -245,10 +236,8 @@ export function ForceGraph({
         d.fy = d.y;
       })
       .on('drag', (event, d) => {
-        const r = d.r || 18;
-        const margin = 10;
-        d.fx = Math.max(margin + r, Math.min(width - margin - r, event.x));
-        d.fy = Math.max(margin + r, Math.min(height - margin - r, event.y));
+        d.fx = event.x;
+        d.fy = event.y;
       })
       .on('end', (event, d) => {
         if (!event.active) simulation.alphaTarget(0);
@@ -283,13 +272,6 @@ export function ForceGraph({
 
     // 更新
     simulation.on('tick', () => {
-      const margin = 10;
-      nodes.forEach(d => {
-        const r = d.r || 18;
-        d.x = Math.max(margin + r, Math.min(width - margin - r, d.x!));
-        d.y = Math.max(margin + r, Math.min(height - margin - r, d.y!));
-      });
-
       link
         .attr('x1', (d: any) => d.source.x)
         .attr('y1', (d: any) => d.source.y)
@@ -299,13 +281,40 @@ export function ForceGraph({
       nodeGroup.attr('transform', d => `translate(${d.x},${d.y})`);
     });
 
-    // 初始缩放
-    svg.call(zoom.transform, d3.zoomIdentity);
+    // 初始视图 - 自适应所有节点
+    const initialTransform = calculateFitTransform(nodes, width, height);
+    svg.call(zoom.transform, initialTransform);
 
     return () => {
       simulation.stop();
     };
   }, [albums, width, height]);
+
+  // 计算自适应视图的 transform
+  const calculateFitTransform = (nodes: GraphNode[], width: number, height: number) => {
+    if (nodes.length === 0) return d3.zoomIdentity;
+    
+    const xExtent = d3.extent(nodes, d => d.x!);
+    const yExtent = d3.extent(nodes, d => d.y!);
+    
+    const xRange = (xExtent[1]! - xExtent[0]!) || 100;
+    const yRange = (yExtent[1]! - yExtent[0]!) || 100;
+    
+    const padding = 100;
+    const scale = Math.min(
+      (width - padding * 2) / xRange,
+      (height - padding * 2) / yRange,
+      1.5 // 最大缩放 1.5x
+    );
+    
+    const centerX = (xExtent[0]! + xExtent[1]!) / 2;
+    const centerY = (yExtent[0]! + yExtent[1]!) / 2;
+    
+    return d3.zoomIdentity
+      .translate(width / 2, height / 2)
+      .scale(scale)
+      .translate(-centerX, -centerY);
+  };
 
   // 处理流派点击
   const handleGenreClick = (genre: string) => {
@@ -323,6 +332,15 @@ export function ForceGraph({
   const handleBackgroundClick = () => {
     setSelectedGenre(null);
     setSelectedAlbumId(null);
+  };
+
+  // 回到中心
+  const handleHome = () => {
+    if (!svgRef.current || !zoomRef.current) return;
+    const transform = calculateFitTransform(nodes, width, height);
+    d3.select(svgRef.current)
+      .transition().duration(500)
+      .call(zoomRef.current.transform, transform);
   };
 
   // 高亮效果
@@ -418,7 +436,7 @@ export function ForceGraph({
         .style('filter', (d: any) => d.type === 'genre' ? `drop-shadow(0 0 8px ${d.color || '#888'})` : 'drop-shadow(0 0 4px rgba(100,150,255,0.3))');
 
       linksRef.current?.transition().duration(300)
-        .attr('stroke', 'rgba(100, 180, 255, 0.5)')
+        .attr('stroke', 'rgba(100, 180, 255, 0.4)')
         .attr('stroke-width', 1.5)
         .style('opacity', 1);
     }
@@ -522,7 +540,8 @@ export function ForceGraph({
 
   const handleReset = () => {
     if (!svgRef.current || !zoomRef.current) return;
-    d3.select(svgRef.current).transition().duration(500).call(zoomRef.current.transform, d3.zoomIdentity);
+    const transform = calculateFitTransform(nodes, width, height);
+    d3.select(svgRef.current).transition().duration(500).call(zoomRef.current.transform, transform);
   };
 
   return (
@@ -531,16 +550,19 @@ export function ForceGraph({
         <svg ref={svgRef} className="w-full h-full" style={{ display: 'block' }} onClick={(e) => e.stopPropagation()} />
       </div>
 
-      {/* 缩放按钮 */}
+      {/* 缩放和Home按钮 */}
       <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-2" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2">
+          <button onClick={handleHome} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg" title="回到中心">
+            <Home size={18} />
+          </button>
           <button onClick={handleZoomIn} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
             <ZoomIn size={18} />
           </button>
           <button onClick={handleZoomOut} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
             <ZoomOut size={18} />
           </button>
-          <button onClick={handleReset} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
+          <button onClick={handleReset} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg" title="适应视图">
             <Maximize size={18} />
           </button>
         </div>
