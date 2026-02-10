@@ -109,8 +109,20 @@ export function ForceGraph({
       if (parentAlbum) {
         // 只有展开的专辑才显示其单曲
         if (expandedAlbumId === parentAlbum.id) {
-          const angle = Math.random() * Math.PI * 2;
-          const radius = 50 + Math.random() * 40; // 围绕专辑周围
+          // 找到父专辑节点的位置（如果存在）
+          const parentNode = graphNodes.find(n => n.id === `album-${parentAlbum.id}`);
+          const parentX = parentNode?.x ?? centerX;
+          const parentY = parentNode?.y ?? centerY;
+
+          // 均匀分布在专辑周围
+          const tracksOfAlbum = tracks.filter(t =>
+            t.albumName.toLowerCase() === parentAlbum.title.toLowerCase() ||
+            parentAlbum.title.toLowerCase().includes(t.albumName.toLowerCase())
+          );
+          const trackIndex = tracksOfAlbum.findIndex(t => t.id === track.id);
+          const totalTracks = tracksOfAlbum.length || 1;
+          const angle = (trackIndex / totalTracks) * Math.PI * 2;
+          const radius = 45; // 固定距离围绕专辑
 
           graphNodes.push({
             id: `track-${track.id}`,
@@ -121,8 +133,8 @@ export function ForceGraph({
             coverUrl: track.coverUrl,
             albumName: track.albumName,
             r: 8, // 比专辑小
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle),
+            x: parentX + radius * Math.cos(angle),
+            y: parentY + radius * Math.sin(angle),
           });
 
           graphLinks.push({
@@ -332,6 +344,37 @@ export function ForceGraph({
       .attr('font-size', '10px')
       .attr('fill', 'var(--text-primary)')
       .style('text-shadow', '0 1px 4px rgba(0,0,0,0.8)');
+
+    // 专辑展开指示器 - 显示专辑是否有单曲以及展开状态
+    const albumWithTracks = nodeGroup.filter(d => {
+      if (d.type !== 'album') return false;
+      const albumId = parseInt(d.id.replace('album-', ''));
+      const album = albums.find(a => a.id === albumId);
+      if (!album) return false;
+      // 检查是否有属于该专辑的单曲
+      return tracks.some(t =>
+        t.albumName.toLowerCase() === album.title.toLowerCase() ||
+        album.title.toLowerCase().includes(t.albumName.toLowerCase())
+      );
+    });
+
+    // 展开状态指示点
+    albumWithTracks.append('circle')
+      .attr('class', 'expand-indicator')
+      .attr('r', 4)
+      .attr('cx', d => {
+        const albumId = parseInt(d.id.replace('album-', ''));
+        const isExpanded = expandedAlbumId === albumId;
+        return isExpanded ? -(d.r || 18) - 2 : (d.r || 18) + 2;
+      })
+      .attr('cy', d => -(d.r || 18) - 2)
+      .attr('fill', d => {
+        const albumId = parseInt(d.id.replace('album-', ''));
+        return expandedAlbumId === albumId ? '#4ade80' : '#60a5fa'; // 展开=绿色，收起=蓝色
+      })
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1)
+      .style('filter', 'drop-shadow(0 0 2px rgba(0,0,0,0.5))');
 
     // 拖拽节点
     const drag = d3.drag<SVGGElement, GraphNode>()
