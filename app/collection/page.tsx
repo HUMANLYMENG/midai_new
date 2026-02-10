@@ -159,11 +159,25 @@ export default function CollectionPage() {
         });
       } else {
         const endpoint = type === 'album' ? '/api/albums' : '/api/tracks';
-        await fetch(endpoint, {
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          if (data.error) {
+            alert(data.error);
+          }
+          return;
+        }
+        
+        // 如果 track 创建了专辑，显示提示
+        if (type === 'track' && data.albumCreated) {
+          console.log(`[Collection] Auto-created album with ID: ${data.albumId}`);
+        }
       }
       fetchAlbums();
       fetchTracks();
@@ -205,76 +219,46 @@ export default function CollectionPage() {
     throw new Error(data.error);
   };
 
-  const handleBatchFetchCovers = async (force: boolean = false, type: 'all' | 'albums' | 'tracks' = 'all') => {
-    const totalToFetch = force
-      ? (coverStatus?.total || 0)
-      : (coverStatus?.withoutCover || 0);
-
-    const typeLabel = type === 'albums' ? 'albums' : type === 'tracks' ? 'tracks' : 'all';
+  const handleBatchFetchCovers = async (force: boolean = false) => {
+    const totalToFetch = coverStatus?.withoutCover || 0;
 
     setBatchProgress({
       isRunning: true,
       current: 0,
       total: totalToFetch,
-      message: force ? `Refreshing all ${typeLabel} covers...` : `Fetching missing ${typeLabel} covers...`,
+      message: force ? 'Refreshing all covers...' : 'Fetching missing covers...',
     });
     setShowBatchModal(true);
 
     try {
-      // 第一步：获取进度流 ID
-      const initRes = await fetch('/api/covers/batch', {
+      const res = await fetch('/api/covers/batch-process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force, type }),
+        body: JSON.stringify({ force }),
       });
-      const initData = await initRes.json();
-
-      if (!initData.success || !initData.progressId) {
-        throw new Error('Failed to initialize progress');
-      }
-
-      const { progressId, streamUrl } = initData;
-
-      // 第二步：启动后台处理
-      fetch('/api/covers/batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force, type, progressId }),
-      });
-
-      // 第三步：连接 SSE 进度流
-      const eventSource = new EventSource(streamUrl);
       
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
+      const data = await res.json();
+
+      if (data.success) {
         setBatchProgress({
-          isRunning: !data.completed,
-          current: data.current,
-          total: data.total,
-          message: data.message,
-        });
-
-        if (data.completed) {
-          eventSource.close();
-          // 刷新数据
-          setImageRefreshKey(prev => prev + 1);
-          fetchAlbums();
-          fetchTracks();
-          fetchCoverStatus();
-        }
-      };
-
-      eventSource.onerror = (error) => {
-        console.error('SSE error:', error);
-        eventSource.close();
-        setBatchProgress(prev => ({
-          ...prev,
           isRunning: false,
-          message: 'Connection error',
-        }));
-      };
-
+          current: data.data.updated,
+          total: data.data.total,
+          message: `Completed! Updated: ${data.data.updated}, Failed: ${data.data.failed}`,
+        });
+        // 刷新数据
+        setImageRefreshKey(prev => prev + 1);
+        fetchAlbums();
+        fetchTracks();
+        fetchCoverStatus();
+      } else {
+        setBatchProgress({
+          isRunning: false,
+          current: 0,
+          total: 0,
+          message: data.error || 'Failed',
+        });
+      }
     } catch (error) {
       console.error('Batch fetch error:', error);
       setBatchProgress({
@@ -450,7 +434,7 @@ export default function CollectionPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleBatchFetchCovers(false, 'all')}
+                onClick={() => handleBatchFetchCovers(false)}
                 disabled={batchProgress.isRunning}
                 className="flex items-center gap-1"
                 title={`获取 ${coverStatus.withoutCover} 个缺失封面（${coverStatus.albums.withoutCover} 专辑 + ${coverStatus.tracks.withoutCover} 单曲）`}
@@ -489,7 +473,7 @@ export default function CollectionPage() {
               highlightedItemType={highlightedItemType}
               onReloadCovers={() => {
                 if (confirm('确定要重新获取所有封面吗？这将覆盖已有的封面。')) {
-                  handleBatchFetchCovers(true, 'all');
+                  handleBatchFetchCovers(true);
                 }
               }}
               isReloading={batchProgress.isRunning}
