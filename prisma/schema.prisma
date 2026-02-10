@@ -20,8 +20,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -42,10 +41,10 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  accounts Account[]
-  sessions Session[]
-  albums   Album[]
+  accounts      Account[]
+  albums        Album[]
+  sessions      Session[]
+  tracks        Track[]
 
   @@index([email])
 }
@@ -71,11 +70,30 @@ model Album {
   coverUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // 多用户关联
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, artist, title])
+  @@index([userId, genre])
+}
+
+model Track {
+  id          Int      @id @default(autoincrement())
+  title       String
+  artist      String
+  albumName   String
+  releaseDate String?
+  genre       String?
+  length      String?
+  label       String?
+  tag         String?
+  comment     String?
+  coverUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artist, albumName, title])
   @@index([userId, genre])
 }

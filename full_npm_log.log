@@ -1,0 +1,1232 @@
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.2s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /auth/signin in 24s (2606 modules)
+ GET /auth/signin 200 in 26014ms
+ GET /api/auth/session 200 in 26156ms
+ GET /collection 200 in 26294ms
+ ✓ Compiled in 3.8s (1220 modules)
+ ○ Compiling /api/albums ...
+ ✓ Compiled /api/albums in 2.8s (2599 modules)
+ GET /api/auth/session 200 in 3220ms
+ GET /api/albums?sort=default 200 in 3240ms
+ GET /api/covers/batch 200 in 3259ms
+ GET /api/auth/session 200 in 28ms
+ ○ Compiling /api/import ...
+ ✓ Compiled /api/import in 1845ms (2603 modules)
+ POST /api/import 200 in 3640ms
+ GET /api/covers/batch 200 in 87ms
+ GET /api/albums?sort=default 200 in 99ms
+ POST /api/covers/batch 200 in 29651ms
+ GET /api/albums?sort=default 200 in 72ms
+ GET /api/covers/batch 200 in 58ms
+ ✓ Compiled in 4.8s (2441 modules)
+ GET /collection 200 in 368ms
+ ○ Compiling /api/albums ...
+ ✓ Compiled /api/albums in 880ms (1384 modules)
+ ✓ Compiled (1386 modules)
+ GET /api/albums?sort=default 200 in 2244ms
+ GET /api/covers/batch 200 in 2253ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 607ms (1387 modules)
+ GET /api/auth/session 200 in 952ms
+ GET /api/auth/session 200 in 22ms
+ GET /collection 200 in 1084ms
+ GET /api/albums?sort=default 200 in 92ms
+ GET /api/auth/session 200 in 143ms
+ GET /api/covers/batch 200 in 158ms
+ GET /api/auth/session 200 in 25ms
+ ✓ Compiled in 2.4s (2607 modules)
+ GET /collection 200 in 215ms
+ GET /api/covers/batch 200 in 151ms
+ GET /api/albums?sort=default 200 in 166ms
+ GET /api/auth/session 200 in 116ms
+ GET /api/auth/session 200 in 35ms
+ GET /collection 200 in 865ms
+ GET /api/albums?sort=default 200 in 65ms
+ GET /api/auth/session 200 in 121ms
+ GET /api/covers/batch 200 in 135ms
+ GET /api/auth/session 200 in 25ms
+ GET /api/auth/session 200 in 97ms
+ GET /api/auth/session 200 in 24ms
+ GET /api/auth/session 200 in 87ms
+ GET /api/auth/session 200 in 33ms
+ GET /api/albums?sort=alphabet 200 in 66ms
+ GET /api/covers/batch 200 in 72ms
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 11s (1233 modules)
+ GET / 200 in 13188ms
+ ✓ Compiled in 2.1s (614 modules)
+ ○ Compiling /collection ...
+ ✓ Compiled /collection in 7.1s (2438 modules)
+ GET /collection 200 in 9571ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4.9s (2605 modules)
+ GET /api/albums?sort=default 200 in 5760ms
+ GET /api/covers/batch 200 in 5778ms
+ GET /api/auth/session 200 in 7475ms
+ GET /api/auth/session 200 in 66ms
+ ○ Compiling /api/import ...
+ ✓ Compiled /api/import in 1711ms (2600 modules)
+ POST /api/import 200 in 2812ms
+ GET /api/albums?sort=default 200 in 69ms
+ GET /api/covers/batch 200 in 66ms
+ POST /api/covers/batch 200 in 13431ms
+ GET /api/albums?sort=default 200 in 67ms
+ GET /api/covers/batch 200 in 68ms
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 11s (1233 modules)
+ GET / 200 in 13202ms
+ ✓ Compiled in 2.2s (614 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 3.6s (1379 modules)
+ GET /api/auth/session 200 in 6354ms
+ GET /api/auth/session 200 in 70ms
+ ○ Compiling /collection ...
+ ✓ Compiled /collection in 6.5s (2598 modules)
+ GET /collection 200 in 7030ms
+ ○ Compiling /api/covers/batch ...
+ ✓ Compiled /api/covers/batch in 3.6s (2605 modules)
+ GET /api/covers/batch 200 in 4195ms
+ GET /api/albums?sort=default 200 in 4217ms
+ GET /api/covers/batch 200 in 48ms
+ GET /api/albums?sort=default 200 in 52ms
+ GET /api/albums?sort=genre 200 in 82ms
+ GET /api/covers/batch 200 in 91ms
+ GET /api/albums?sort=artist 200 in 93ms
+ GET /api/covers/batch 200 in 105ms
+ GET /collection 200 in 1163ms
+ GET /api/albums?sort=default 200 in 98ms
+ GET /api/covers/batch 200 in 172ms
+ GET /api/auth/session 200 in 166ms
+ GET /api/auth/session 200 in 27ms
+ GET / 200 in 63ms
+ GET /collection 200 in 63ms
+ GET /api/albums?sort=default 200 in 64ms
+ GET /api/covers/batch 200 in 69ms
+ GET /api/albums?sort=default 200 in 58ms
+ GET /api/covers/batch 200 in 62ms
+ GET / 200 in 55ms
+ GET /collection 200 in 55ms
+ GET /api/albums?sort=default 200 in 50ms
+ GET /api/covers/batch 200 in 50ms
+ GET /api/albums?sort=default 200 in 49ms
+ GET /api/covers/batch 200 in 45ms
+ GET / 200 in 46ms
+ GET /collection 200 in 49ms
+ GET /api/albums?sort=default 200 in 47ms
+ GET /api/covers/batch 200 in 50ms
+ GET /api/albums?sort=default 200 in 49ms
+ GET /api/covers/batch 200 in 44ms
+ ✓ Compiled in 1669ms (1230 modules)
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 12.2s (1233 modules)
+ GET / 200 in 7401ms
+ ✓ Compiled in 2.5s (614 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4.9s (1380 modules)
+ GET /api/auth/session 200 in 7803ms
+ GET /api/auth/session 200 in 70ms
+ GET /api/auth/session 200 in 92ms
+ GET /api/auth/session 200 in 30ms
+ ○ Compiling /collection ...
+ ✓ Compiled /collection in 7.6s (2601 modules)
+ GET /collection 200 in 8126ms
+ ○ Compiling /api/covers/batch ...
+ ✓ Compiled /api/covers/batch in 4.3s (2608 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/albums?sort=default 200 in 4976ms
+ GET /api/albums?sort=default 200 in 5027ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 5019ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 5004ms
+ GET /api/auth/session 200 in 95ms
+ GET /api/auth/session 200 in 45ms
+ GET / 200 in 158ms
+ GET / 200 in 33ms
+ GET /collection 200 in 70ms
+ GET /api/albums?sort=default 200 in 47ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 77ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 110ms
+ GET /api/albums?sort=default 200 in 120ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/albums?sort=genre 200 in 71ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 71ms
+ GET /api/albums?sort=alphabet 200 in 52ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 62ms
+ GET /api/albums?sort=label 200 in 66ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 51ms
+ GET /api/albums?sort=default 200 in 56ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 70ms
+ GET /api/auth/session 200 in 110ms
+ GET /api/auth/session 200 in 27ms
+ GET /api/auth/session 200 in 77ms
+ GET /api/auth/session 200 in 24ms
+ GET /collection 200 in 1144ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/albums?sort=default 200 in 81ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 131ms
+ GET /api/auth/session 200 in 135ms
+ GET /api/auth/session 200 in 25ms
+ ✓ Compiled /api/albums in 5.8s (2455 modules)
+ ✓ Compiled in 2ms (1396 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/albums?sort=default 200 in 2863ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 2895ms
+ GET /collection 200 in 2404ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 3.4s (1398 modules)
+ GET /api/auth/session 200 in 3538ms
+ GET /collection 200 in 4692ms
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5.5s
+ ○ Compiling / ...
+ ✓ Compiled / in 12.1s (1233 modules)
+ GET / 200 in 14330ms
+ ✓ Compiled in 2.2s (614 modules)
+ ○ Compiling /collection ...
+ ✓ Compiled /collection in 8.7s (2440 modules)
+ GET /collection 200 in 10374ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4.1s (2608 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 5090ms
+ GET /api/albums?sort=default 200 in 5119ms
+ GET /api/auth/session 200 in 7388ms
+ GET /api/auth/session 200 in 77ms
+ ✓ Compiled in 3.9s (2446 modules)
+ GET /collection 200 in 450ms
+ GET /collection 200 in 1002ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 728ms (1383 modules)
+ ✓ Compiled (1389 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/auth/session 200 in 2083ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 2108ms
+ GET /api/albums?sort=default 200 in 2121ms
+ GET /api/auth/session 200 in 26ms
+ ✓ Compiled in 3.8s (2613 modules)
+ GET /collection 200 in 310ms
+ GET /collection 200 in 996ms
+[Covers Batch] Getting cover status...
+ GET /api/albums?sort=default 200 in 365ms
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+ GET /api/auth/session 200 in 458ms
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 477ms
+ GET /api/auth/session 200 in 27ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.2s (1398 modules)
+ GET / 200 in 2397ms
+ GET / 200 in 81ms
+ GET / 200 in 44ms
+ GET /collection 200 in 78ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 174ms
+ GET /api/albums?sort=default 200 in 217ms
+ GET /api/albums?sort=default 200 in 224ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 100ms
+ ✓ Compiled in 5.8s (2622 modules)
+ GET /collection 200 in 282ms
+ ✓ Compiled in 2.6s (2446 modules)
+ GET /collection 200 in 344ms
+ GET /collection 200 in 1046ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 1439ms (1383 modules)
+ ✓ Compiled (1389 modules)
+[Covers Batch] Getting cover status...
+ GET /api/auth/session 200 in 2870ms
+[Covers Batch] Status check for user: cmlcg46n40000s1fcxl11q4cx
+[Covers Batch] Status: 67 total, 0 without cover
+ GET /api/covers/batch 200 in 2900ms
+ GET /api/albums?sort=default 200 in 2916ms
+ GET /api/auth/session 200 in 28ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1328ms (1231 modules)
+ GET / 200 in 1685ms
+ GET / 200 in 30ms
+ GET / 200 in 41ms
+ ✓ Compiled in 7.5s (2451 modules)
+ ✓ Compiled in 3.5s (2437 modules)
+ ✓ Compiled in 1718ms (2437 modules)
+ ✓ Compiled in 1533ms (1222 modules)
+ ✓ Compiled in 5.4s (1222 modules)
+ ✓ Compiled in 1180ms (1222 modules)
+ ✓ Compiled in 2.7s (2419 modules)
+ ✓ Compiled in 1956ms (2419 modules)
+ ✓ Compiled in 1709ms (2419 modules)
+ ✓ Compiled in 2s (2419 modules)
+ ✓ Compiled in 1526ms (2419 modules)
+ ✓ Compiled in 1488ms (2419 modules)
+ ✓ Compiled in 1483ms (2419 modules)
+ ✓ Compiled in 1649ms (2419 modules)
+ ✓ Compiled in 4.7s (2441 modules)
+ ✓ Compiled in 2s (2453 modules)
+ ✓ Compiled in 1360ms (1223 modules)
+ ✓ Compiled in 1344ms (1223 modules)
+ ✓ Compiled in 733ms (1223 modules)
+ ✓ Compiled in 1285ms (1223 modules)
+ ✓ Compiled in 1337ms (1223 modules)
+ ✓ Compiled in 761ms (1223 modules)
+ ✓ Compiled in 664ms (1223 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 4.4s (2443 modules)
+ GET /collection 404 in 5187ms
+ GET /_next/static/chunks/app/layout.js 404 in 221ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 228ms
+ GET /_next/static/css/app/layout.css?v=1770717752715 404 in 242ms
+ GET /_next/static/chunks/main-app.js?v=1770717752715 404 in 237ms
+[?25h
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0 -p 3002
+
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 10.5s
+ ○ Compiling / ...
+ ✓ Compiled / in 31.9s (1233 modules)
+ GET / 200 in 35625ms
+ ✓ Compiled in 3.6s (614 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /collection in 33.8s (2599 modules)
+ GET /collection 200 in 33156ms
+ GET /collection 200 in 80ms
+ ○ Compiling /api/covers/batch ...
+ GET /api/auth/session 200 in 37510ms
+ ✓ Compiled /api/covers/batch in 3.6s (2608 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 4052ms
+ GET /api/tracks 200 in 4099ms
+ GET /api/albums 200 in 4101ms
+ GET /api/albums 200 in 4069ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 4077ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 2217ms
+ GET /api/auth/session 200 in 138ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /collection 200 in 1377ms
+[Covers Batch] Getting cover status...
+ GET /api/albums 200 in 73ms
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 96ms
+ GET /api/tracks 200 in 98ms
+ GET /api/auth/session 200 in 171ms
+ GET /api/auth/session 200 in 23ms
+ GET /collection 200 in 114ms
+ GET /api/albums 200 in 51ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 128ms
+ GET /api/auth/session 200 in 117ms
+ GET /api/tracks 200 in 158ms
+ GET /api/auth/session 200 in 26ms
+ GET /collection 200 in 114ms
+ GET /api/albums 200 in 87ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 115ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 121ms
+ GET /api/auth/session 200 in 140ms
+ GET /api/auth/session 200 in 19ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 5.1s (2622 modules)
+ GET /collection 200 in 3758ms
+[Covers Batch] Getting cover status...
+ GET /api/albums 200 in 429ms
+ GET /api/auth/session 200 in 443ms
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 470ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 478ms
+ GET /api/auth/session 200 in 24ms
+ GET /collection 200 in 129ms
+[Covers Batch] Getting cover status...
+ GET /api/albums 200 in 58ms
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 78ms
+ GET /api/tracks 200 in 80ms
+ GET /api/auth/session 200 in 135ms
+ GET /api/auth/session 200 in 39ms
+ GET / 200 in 65ms
+ GET /collection 200 in 49ms
+ GET /api/albums 200 in 51ms
+ GET /api/tracks 200 in 58ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/albums 200 in 104ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 108ms
+[Covers Batch] Status: 0 total, 0 without cover
+ GET /api/covers/batch 200 in 109ms
+ GET /api/tracks 200 in 113ms
+ ○ Compiling /api/import ...
+ ✓ Compiled /api/import in 4.6s (2612 modules)
+ POST /api/import 200 in 6347ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 131ms
+ GET /api/albums 200 in 147ms
+ ✓ Compiled in 13s (2453 modules)
+ GET /collection 200 in 522ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1586ms (2443 modules)
+ GET /_next/static/css/app/layout.css?v=1770720392399 404 in 1992ms
+ GET /_next/static/css/app/layout.css?v=1770720392399 404 in 67ms
+ ✓ Compiled in 4.1s (2453 modules)
+ GET /collection 200 in 161ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 4.1s (2453 modules)
+ GET /collection 200 in 3149ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1168ms (2443 modules)
+ ⨯ TypeError: __webpack_modules__[moduleId] is not a function
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at (rsc)/./node_modules/next/dist/server/app-render/entry-base.js (.next/server/vendor-chunks/next.js:2338:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at (rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2F_not-found%2Fpage&page=%2F_not-found%2Fpage&appPaths=&pagePath=node_modules%2Fnext%2Fdist%2Fclient%2Fcomponents%2Fnot-found-error.js&appDir=%2Fworkspace%2Fproject%2Fgroups%2Fmain%2Fmidai_new%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fworkspace%2Fproject%2Fgroups%2Fmain%2Fmidai_new&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D! (.next/server/app/_not-found/page.js:88:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at __webpack_exec__ (.next/server/app/_not-found/page.js:160:39)
+    at <unknown> (.next/server/app/_not-found/page.js:161:130)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:163:21)
+    at <unknown> (.next/server/app/_not-found/page.js:161:47)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:164:3)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 16.8s (2696 modules)
+ GET /_next/static/chunks/main-app.js?v=1770720590342 500 in 20261ms
+ ✓ Compiled in 2.8s (2695 modules)
+ ✓ Compiled in 2.2s (2690 modules)
+ ✓ Compiled in 1918ms (2690 modules)
+ ✓ Compiled in 1838ms (2690 modules)
+ ✓ Compiled in 1810ms (2690 modules)
+ ✓ Compiled in 2.5s (2690 modules)
+ ✓ Compiled in 1745ms (2690 modules)
+ ✓ Compiled in 1623ms (2690 modules)
+ ✓ Compiled in 1516ms (2690 modules)
+ ✓ Compiled in 2.4s (2690 modules)
+ ✓ Compiled in 1671ms (2690 modules)
+ ✓ Compiled in 1594ms (2690 modules)
+ ✓ Compiled in 1480ms (2690 modules)
+ ✓ Compiled in 1874ms (2690 modules)
+ ✓ Compiled in 2.3s (2690 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1716ms (2680 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.1s (2682 modules)
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /collection 500 in 4182ms
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/webpack.js 500 in 153ms
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/main.js 500 in 470ms
+ GET /_next/static/chunks/fallback/pages/_app.js 500 in 468ms
+ GET /_next/static/chunks/fallback/pages/_error.js 500 in 466ms
+ GET /_next/static/chunks/fallback/react-refresh.js 500 in 464ms
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 143ms
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/webpack.js 500 in 179ms
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/main.js 500 in 472ms
+ GET /_next/static/chunks/fallback/pages/_app.js 500 in 469ms
+ GET /_next/static/chunks/fallback/pages/_error.js 500 in 467ms
+ GET /_next/static/chunks/fallback/react-refresh.js 500 in 466ms
+ GET / 404 in 38ms
+ GET / 404 in 29ms
+ GET / 404 in 29ms
+ GET / 404 in 24ms
+ GET / 404 in 32ms
+ GET / 404 in 35ms
+ GET / 404 in 31ms
+ GET / 404 in 34ms
+ GET / 404 in 27ms
+ GET / 404 in 576ms
+ GET / 404 in 432ms
+ GET /collection 404 in 236ms
+ GET /collection 404 in 254ms
+ GET /collection 404 in 240ms
+ GET /collection 404 in 226ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 239ms
+ GET /collection 404 in 251ms
+ GET /collection 404 in 237ms
+ GET /collection 404 in 232ms
+ GET /collection 404 in 252ms
+ GET /collection 404 in 241ms
+ GET /collection 404 in 248ms
+ GET /collection 404 in 233ms
+ GET /collection 404 in 236ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 241ms
+ GET /collection 404 in 241ms
+ GET /collection 404 in 235ms
+ GET /collection 404 in 236ms
+ GET /collection 404 in 239ms
+ GET /collection 404 in 234ms
+ GET /collection 404 in 237ms
+ GET /collection 404 in 244ms
+ GET /collection 404 in 238ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 277ms
+ GET /collection 404 in 233ms
+ GET /collection 404 in 239ms
+ GET /collection 404 in 236ms
+ GET /collection 404 in 238ms
+ GET /collection 404 in 234ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 233ms
+ GET /collection 404 in 241ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 240ms
+ GET /collection 404 in 242ms
+ GET /collection 404 in 237ms
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/page.js:1:10220)
+    at Object.<anonymous> (.next/server/app/page.js:1:10273) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/'
+}
+ ⨯ Error: Cannot find module './627.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/pages/_document.js:1:335)
+    at Object.<anonymous> (.next/server/pages/_document.js:1:376) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET / 500 in 309ms
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3028)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3073) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/webpack.js 500 in 149ms
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3028)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3073) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3028)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3073) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3028)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3073) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ ⨯ Error: Cannot find module './638.js'
+Require stack:
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/webpack-runtime.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/.next/server/pages/_document.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/require.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/load-components.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/utils.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/options.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/swc/index.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/parse-module.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/build/analysis/get-page-static-info.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/router-server.js
+- /home/jojo/Documents/nanoclaw/groups/main/midai_new/node_modules/next/dist/server/lib/start-server.js
+    at __webpack_require__.f.require (.next/server/webpack-runtime.js:198:28)
+    at <unknown> (.next/server/webpack-runtime.js:111:40)
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:162:22)
+    at <unknown> (.next/server/app/_not-found/page.js:1:3028)
+    at Object.<anonymous> (.next/server/app/_not-found/page.js:1:3073) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /_next/static/chunks/fallback/main.js 500 in 431ms
+ GET /_next/static/chunks/fallback/pages/_app.js 500 in 428ms
+ GET /_next/static/chunks/fallback/pages/_error.js 500 in 426ms
+ GET /_next/static/chunks/fallback/react-refresh.js 500 in 424ms
+
+> midai@0.1.0 dev
+> next dev -H 0.0.0.0 -p 3002
+
+   ▲ Next.js 15.1.0
+   - Local:        http://localhost:3002
+   - Network:      http://0.0.0.0:3002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 5s
+ ○ Compiling / ...
+ ✓ Compiled / in 25.4s (1233 modules)
+ GET / 200 in 27581ms
+ ✓ Compiled in 2.2s (614 modules)
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /collection in 22s (2599 modules)
+ GET /collection 200 in 21206ms
+ ○ Compiling /api/covers/batch ...
+ GET /api/auth/session 200 in 25221ms
+ ✓ Compiled /api/covers/batch in 3.8s (2608 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 4301ms
+ GET /api/tracks 200 in 4341ms
+ GET /api/albums 200 in 4346ms
+ GET /api/albums 200 in 4323ms
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 4337ms
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 2631ms
+ GET /api/auth/session 200 in 64ms
+ ○ Compiling /api/cover ...
+ ✓ Compiled /api/cover in 3.2s (2458 modules)
+[findBestCover] Searching for: "Radiohead" - "OK Computer"
+[findBestCover] Trying artist + album: "Radiohead" - "OK Computer"
+[Cover] Fetching cover for: "Radiohead" - "OK Computer" (large)
+[Cover] Found via Spotify: https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0e...
+[findBestCover] Found with artist + album
+ GET /api/cover?artist=Radiohead&album=OK+Computer&size=large 200 in 4056ms
+ ○ Compiling /api/tracks/[id] ...
+ ✓ Compiled /api/tracks/[id] in 2.8s (2604 modules)
+[findBestCover] Searching for: "Radiohead" - "OK Computer"
+[findBestCover] Trying artist + album: "Radiohead" - "OK Computer"
+[Cover] Fetching cover for: "Radiohead" - "OK Computer" (large)
+ PUT /api/tracks/2 200 in 5378ms
+ ○ Compiling /api/covers/batch ...
+[Cover] Found via Spotify: https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0e...
+[findBestCover] Found with artist + album
+ GET /api/cover?artist=Radiohead&album=OK+Computer&size=large 200 in 713ms
+ ✓ Compiled /api/covers/batch in 907ms (1397 modules)
+ ✓ Compiled (1401 modules)
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 2202ms
+ GET /api/albums 200 in 2240ms
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 2216ms
+[findBestCover] Searching for: "Radiohead" - "OK Computer"
+[findBestCover] Trying artist + album: "Radiohead" - "OK Computer"
+[Cover] Fetching cover for: "Radiohead" - "OK Computer" (large)
+[Cover] Found via Spotify: https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0e...
+[findBestCover] Found with artist + album
+ GET /api/cover?artist=Radiohead&album=OK+Computer&size=large 200 in 311ms
+ PUT /api/tracks/2 200 in 127ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 65ms
+ GET /api/albums 200 in 76ms
+ GET /api/tracks 200 in 82ms
+ GET /collection 200 in 1200ms
+ GET /api/albums 200 in 124ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+ GET /api/tracks 200 in 159ms
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 166ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.9s (1399 modules)
+ GET /api/auth/session 200 in 3352ms
+ GET /api/auth/session 200 in 34ms
+ GET /api/auth/session 200 in 51ms
+ GET /api/auth/session 200 in 24ms
+ GET /collection 200 in 1228ms
+ GET /api/albums 200 in 82ms
+[Covers Batch] Getting cover status...
+[Covers Batch] Using fallback dev user for status
+[Covers Batch] Status check for user: cmlfz5j4t0000qj3ihnsy39j5
+[Covers Batch] Status: 46 total, 46 without cover
+ GET /api/covers/batch 200 in 100ms
+ GET /api/auth/session 200 in 135ms
+ GET /api/tracks 200 in 157ms
+ GET /api/auth/session 200 in 20ms
+ ✓ Compiled in 2.1s (1230 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 8.8s (2453 modules)
+ ⨯ TypeError: __webpack_modules__[moduleId] is not a function
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at (rsc)/./node_modules/next/dist/server/app-render/entry-base.js (.next/server/vendor-chunks/next.js:2513:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at (rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fcollection%2Fpage&page=%2Fcollection%2Fpage&appPaths=%2Fcollection%2Fpage&pagePath=private-next-app-dir%2Fcollection%2Fpage.tsx&appDir=%2Fhome%2Fjojo%2FDocuments%2Fnanoclaw%2Fgroups%2Fmain%2Fmidai_new%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Fjojo%2FDocuments%2Fnanoclaw%2Fgroups%2Fmain%2Fmidai_new&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D! (.next/server/app/collection/page.js:88:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:42)
+    at __webpack_exec__ (.next/server/app/collection/page.js:379:39)
+    at <unknown> (.next/server/app/collection/page.js:380:1109)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:163:21)
+    at <unknown> (.next/server/app/collection/page.js:380:47)
+    at Object.<anonymous> (.next/server/app/collection/page.js:383:3) {
+  page: '/collection'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 7.4s (2678 modules)
+ GET /collection 500 in 12317ms
+ ✓ Compiled in 2.2s (2692 modules)
+ ⨯ Error: Could not find the module "/workspace/project/groups/main/midai_new/node_modules/next-auth/react.js#SessionProvider" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '2862802665'
+}
+ GET /collection 500 in 2716ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1872ms (2692 modules)
+ ⨯ Error: Could not find the module "/workspace/project/groups/main/midai_new/node_modules/next-auth/react.js#SessionProvider" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '2862802665'
+}
+ GET /collection 500 in 3493ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1863ms (2692 modules)
+ ⨯ Error: Could not find the module "/workspace/project/groups/main/midai_new/node_modules/next-auth/react.js#SessionProvider" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '2862802665'
+}
+ GET /collection 500 in 2671ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1967ms (2692 modules)
+ ⨯ Error: Could not find the module "/workspace/project/groups/main/midai_new/node_modules/next-auth/react.js#SessionProvider" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>)
+    at stringify (<anonymous>) {
+  digest: '2862802665'
+}
+ GET /collection 500 in 2999ms

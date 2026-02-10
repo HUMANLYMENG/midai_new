@@ -27,8 +27,9 @@ export interface AlbumInput {
 
 export interface GraphNode {
   id: string;
-  type: 'album' | 'genre';
+  type: 'album' | 'track' | 'genre';
   albumId?: number;
+  trackId?: number;
   artist?: string;
   genre?: string[];
   coverUrl?: string;
@@ -40,6 +41,7 @@ export interface GraphNode {
   fx?: number | null;
   fy?: number | null;
   r?: number;
+  albumName?: string; // 单曲所属的专辑名
 }
 
 export interface GraphLink {
@@ -47,4 +49,38 @@ export interface GraphLink {
   target: string | GraphNode;
 }
 
-export type SortOption = 'default' | 'alphabet' | 'genre' | 'artist' | 'label';
+export type SortOption = 'default' | 'alphabet' | 'genre' | 'artist' | 'label' | 'album';
+
+// 单曲类型
+export interface Track {
+  id: number;
+  title: string;
+  artist: string;
+  albumName: string;  // 单曲所属的专辑名
+  releaseDate?: string;
+  genre?: string;
+  length?: string;
+  label?: string;
+  tag?: string;
+  comment?: string;
+  coverUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrackInput {
+  title: string;
+  artist: string;
+  albumName: string;
+  releaseDate?: string;
+  genre?: string;
+  length?: string;
+  label?: string;
+  tag?: string;
+  comment?: string;
+  coverUrl?: string;
+}
+
+// 收藏类型：专辑或单曲
+export type CollectionItem = Album | Track;
+export type CollectionItemType = 'album' | 'track';

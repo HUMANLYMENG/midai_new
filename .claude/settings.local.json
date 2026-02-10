@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlite3:*)",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 实现 Google 认证、边栏搜索和专辑封面获取功能\n\n- 添加 NextAuth.js Google OAuth 认证登录\n- 实现多用户支持，专辑与用户关联\n- 边栏添加搜索功能，支持按标题/艺术家/流派筛选\n- 专辑封面获取功能：\n  - 批量获取缺失封面的专辑\n  - 右键菜单单个获取封面\n  - MusicBrainz Cover Art Archive 作为备用源\n  - 图片加载错误处理和加载状态\n- 添加用户认证中间件和权限控制\n- 更新 Prisma schema 支持用户和认证\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(grep:*)",
+      "Bash(ls -la:*)",
+      "Bash(echo $ANTHROPIC_AUTH_TOKEN)",
+      "Bash(cat:*)",
+      "Bash(gsettings get:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 修复搜索框文字颜色和导航栏用户信息显示\n\n- 修复 dark mode 下搜索框文字颜色不可见的问题\n- 修复浏览器自动填充导致的样式覆盖\n- 优化导航栏用户信息显示布局，修复头像加载失败时的重复显示问题\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)"
+    ]
+  }
+}

@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Album, AlbumInput, SortOption } from '@/types';
-import { AlbumList } from '@/components/album/AlbumList';
-import { AlbumForm } from '@/components/album/AlbumForm';
+import { Album, AlbumInput, Track, TrackInput, SortOption, CollectionItem, CollectionItemType } from '@/types';
+import { CollectionList } from '@/components/collection/CollectionList';
+import { CollectionForm } from '@/components/collection/CollectionForm';
 import { ImportModal } from '@/components/album/ImportModal';
 import { ForceGraph } from '@/components/graph/ForceGraph';
 import { Button } from '@/components/ui/Button';
@@ -32,8 +32,10 @@ export default function CollectionPage() {
   const router = useRouter();
 
   const [sort, setSort] = useState<SortOption>('default');
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
-  const [highlightedAlbumId, setHighlightedAlbumId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<CollectionItemType>('album');
+  const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
+  const [highlightedItemId, setHighlightedItemId] = useState<number | null>(null);
+  const [highlightedItemType, setHighlightedItemType] = useState<CollectionItemType | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -47,6 +49,7 @@ export default function CollectionPage() {
   });
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
+  const [expandedAlbumId, setExpandedAlbumId] = useState<number | null>(null);
 
   // 检查登录状态（开发测试时禁用跳转）
   // useEffect(() => {
@@ -57,6 +60,7 @@ export default function CollectionPage() {
 
   // 原始专辑数据（用于图表，不随排序变化）
   const [rawAlbums, setRawAlbums] = useState<Album[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
 
   const fetchAlbums = useCallback(async () => {
     try {
@@ -78,6 +82,24 @@ export default function CollectionPage() {
       console.error('Failed to fetch albums:', error);
     } finally {
       setIsLoading(false);
+    }
+  }, [imageRefreshKey]);
+
+  const fetchTracks = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tracks', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success) {
+        const tracksWithTimestamp = data.data.map((track: Track) => ({
+          ...track,
+          coverUrl: track.coverUrl
+            ? `${track.coverUrl}${track.coverUrl.includes('?') ? '&' : '?'}_t=${imageRefreshKey}`
+            : null,
+        }));
+        setTracks(tracksWithTimestamp);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tracks:', error);
     }
   }, [imageRefreshKey]);
 
@@ -113,42 +135,53 @@ export default function CollectionPage() {
 
   useEffect(() => {
     fetchAlbums();
+    fetchTracks();
     fetchCoverStatus();
-  }, [fetchAlbums, fetchCoverStatus]);
+  }, [fetchAlbums, fetchTracks, fetchCoverStatus]);
 
-  const handleSubmit = async (formData: AlbumInput) => {
+  const handleSubmit = async (formData: AlbumInput | TrackInput, type: CollectionItemType) => {
     try {
-      if (selectedAlbum) {
-        await fetch(`/api/albums/${selectedAlbum.id}`, {
+      if (selectedItem) {
+        const endpoint = type === 'album'
+          ? `/api/albums/${selectedItem.id}`
+          : `/api/tracks/${selectedItem.id}`;
+        await fetch(endpoint, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
       } else {
-        await fetch('/api/albums', {
+        const endpoint = type === 'album' ? '/api/albums' : '/api/tracks';
+        await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
       }
       fetchAlbums();
+      fetchTracks();
       fetchCoverStatus();
     } catch (error) {
-      console.error('Failed to save album:', error);
+      console.error('Failed to save item:', error);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedAlbum) return;
+    if (!selectedItem) return;
     try {
-      await fetch(`/api/albums/${selectedAlbum.id}`, { method: 'DELETE' });
+      const endpoint = activeTab === 'album'
+        ? `/api/albums/${selectedItem.id}`
+        : `/api/tracks/${selectedItem.id}`;
+      await fetch(endpoint, { method: 'DELETE' });
       fetchAlbums();
+      fetchTracks();
       fetchCoverStatus();
       setIsFormOpen(false);
-      setSelectedAlbum(null);
-      setHighlightedAlbumId(null);
+      setSelectedItem(null);
+      setHighlightedItemId(null);
+      setHighlightedItemType(null);
     } catch (error) {
-      console.error('Failed to delete album:', error);
+      console.error('Failed to delete item:', error);
     }
   };
 
@@ -214,41 +247,53 @@ export default function CollectionPage() {
     }
   };
 
-  const handleAlbumClick = useCallback((album: Album) => {
-    setHighlightedAlbumId(album.id);
+  const handleItemClick = useCallback((item: CollectionItem, type: CollectionItemType) => {
+    setHighlightedItemId(item.id);
+    setHighlightedItemType(type);
   }, []);
 
-  const handleAlbumEdit = useCallback((album: Album) => {
-    setSelectedAlbum(album);
-    setHighlightedAlbumId(album.id);
+  const handleItemEdit = useCallback((item: CollectionItem, type: CollectionItemType) => {
+    setSelectedItem(item);
+    setHighlightedItemId(item.id);
+    setHighlightedItemType(type);
+    setActiveTab(type);
     setIsFormOpen(true);
   }, []);
 
-  const handleAlbumDelete = useCallback(async (album: Album) => {
+  const handleItemDelete = useCallback(async (item: CollectionItem, type: CollectionItemType) => {
     try {
-      await fetch(`/api/albums/${album.id}`, { method: 'DELETE' });
+      const endpoint = type === 'album'
+        ? `/api/albums/${item.id}`
+        : `/api/tracks/${item.id}`;
+      await fetch(endpoint, { method: 'DELETE' });
       fetchAlbums();
+      fetchTracks();
       fetchCoverStatus();
-      if (selectedAlbum?.id === album.id) {
-        setSelectedAlbum(null);
+      if (selectedItem?.id === item.id) {
+        setSelectedItem(null);
         setIsFormOpen(false);
       }
-      if (highlightedAlbumId === album.id) {
-        setHighlightedAlbumId(null);
+      if (highlightedItemId === item.id) {
+        setHighlightedItemId(null);
+        setHighlightedItemType(null);
       }
     } catch (error) {
-      console.error('Failed to delete album:', error);
+      console.error('Failed to delete item:', error);
     }
-  }, [fetchAlbums, fetchCoverStatus, selectedAlbum, highlightedAlbumId]);
+  }, [fetchAlbums, fetchTracks, fetchCoverStatus, selectedItem, highlightedItemId]);
 
-  // 单个专辑获取封面
-  const handleAlbumFetchCover = useCallback(async (album: Album) => {
+  // 单个项目获取封面
+  const handleItemFetchCover = useCallback(async (item: CollectionItem, type: CollectionItemType) => {
     try {
-      console.log(`[Collection] Fetching cover for: ${album.title}`);
+      console.log(`[Collection] Fetching cover for: ${item.title}`);
       const res = await fetch('/api/covers/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumIds: [album.id], force: true }),
+        body: JSON.stringify({
+          albumIds: type === 'album' ? [item.id] : [],
+          trackIds: type === 'track' ? [item.id] : [],
+          force: true
+        }),
       });
       const data = await res.json();
 
@@ -257,11 +302,15 @@ export default function CollectionPage() {
         if (result?.status === 'success') {
           console.log(`[Collection] Cover fetched successfully: ${result.coverUrl}`);
           setImageRefreshKey(prev => prev + 1);
-          fetchAlbums();
+          if (type === 'album') {
+            fetchAlbums();
+          } else {
+            fetchTracks();
+          }
           fetchCoverStatus();
         } else {
           console.log(`[Collection] Cover fetch failed: ${result?.message || 'Unknown error'}`);
-          alert(`Could not find cover for "${album.title}"`);
+          alert(`Could not find cover for "${item.title}"`);
         }
       } else {
         console.error('[Collection] Cover fetch API error:', data.error);
@@ -271,17 +320,29 @@ export default function CollectionPage() {
       console.error('[Collection] Failed to fetch cover:', error);
       alert('Network error while fetching cover');
     }
-  }, [fetchAlbums, fetchCoverStatus]);
+  }, [fetchAlbums, fetchTracks, fetchCoverStatus]);
 
-  const handleNodeClick = useCallback((album: Album) => {
-    setSelectedAlbum(album);
-    setHighlightedAlbumId(album.id);
+  const handleNodeClick = useCallback((item: Album | Track) => {
+    if ('albumName' in item) {
+      // 单曲
+      setSelectedItem(item);
+      setHighlightedItemId(item.id);
+      setHighlightedItemType('track');
+      setActiveTab('track');
+    } else {
+      // 专辑
+      setSelectedItem(item);
+      setHighlightedItemId(item.id);
+      setHighlightedItemType('album');
+      setActiveTab('album');
+    }
     setIsFormOpen(true);
   }, []);
 
   const handleAddNew = () => {
-    setSelectedAlbum(null);
-    setHighlightedAlbumId(null);
+    setSelectedItem(null);
+    setHighlightedItemId(null);
+    setHighlightedItemType(null);
     setIsFormOpen(true);
   };
 
@@ -321,15 +382,19 @@ export default function CollectionPage() {
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="h-full rounded-2xl overflow-hidden bg-background-secondary/50 backdrop-blur-sm border border-border-color mr-4 flex-shrink-0"
             >
-              <AlbumList
-                albums={sortedAlbums}
+              <CollectionList
+                albums={rawAlbums}
+                tracks={tracks}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
                 sort={sort}
                 onSortChange={setSort}
-                onAlbumClick={handleAlbumClick}
-                onAlbumEdit={handleAlbumEdit}
-                onAlbumDelete={handleAlbumDelete}
-                onAlbumFetchCover={handleAlbumFetchCover}
-                selectedAlbumId={highlightedAlbumId}
+                onItemClick={handleItemClick}
+                onItemEdit={handleItemEdit}
+                onItemDelete={handleItemDelete}
+                onItemFetchCover={handleItemFetchCover}
+                selectedItemId={highlightedItemId}
+                selectedItemType={highlightedItemType}
               />
             </motion.aside>
           )}
@@ -396,23 +461,28 @@ export default function CollectionPage() {
           ) : (
             <ForceGraph
               albums={rawAlbums}
+              tracks={tracks}
               onNodeClick={handleNodeClick}
-              highlightedAlbumId={highlightedAlbumId}
+              highlightedItemId={highlightedItemId}
+              highlightedItemType={highlightedItemType}
+              expandedAlbumId={expandedAlbumId}
+              onAlbumExpand={setExpandedAlbumId}
             />
           )}
         </div>
       </main>
 
       {/* Modals */}
-      <AlbumForm
-        album={selectedAlbum}
+      <CollectionForm
+        item={selectedItem}
+        itemType={activeTab}
         isOpen={isFormOpen}
         onClose={() => {
           setIsFormOpen(false);
-          setSelectedAlbum(null);
+          setSelectedItem(null);
         }}
         onSubmit={handleSubmit}
-        onDelete={selectedAlbum ? handleDelete : undefined}
+        onDelete={selectedItem ? handleDelete : undefined}
       />
 
       <ImportModal
