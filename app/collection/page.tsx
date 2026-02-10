@@ -287,9 +287,11 @@ export default function CollectionPage() {
   };
 
   const handleItemClick = useCallback((item: CollectionItem, type: CollectionItemType) => {
-    setHighlightedItemId(item.id);
-    setHighlightedItemType(type);
-  }, []);
+    // 如果点击的是同一个项目，则取消高亮；否则高亮新项目
+    const isSameItem = highlightedItemId === item.id && highlightedItemType === type;
+    setHighlightedItemId(isSameItem ? null : item.id);
+    setHighlightedItemType(isSameItem ? null : type);
+  }, [highlightedItemId, highlightedItemType]);
 
   const handleItemEdit = useCallback((item: CollectionItem, type: CollectionItemType) => {
     setSelectedItem(item);

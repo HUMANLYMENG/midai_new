@@ -56,6 +56,10 @@ export function ForceGraph({
           .transition().duration(500)
           .call(zoomRef.current.transform, transform);
       }
+    } else if (!highlightedItemId) {
+      // 取消高亮
+      setSelectedAlbumId(null);
+      setSelectedGenre(null);
     }
   }, [highlightedItemId, highlightedItemType, width, height]);
 
