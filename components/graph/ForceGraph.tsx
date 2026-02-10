@@ -5,7 +5,7 @@ import * as d3 from 'd3';
 import { GraphNode, GraphLink, Album, Track, CollectionItemType } from '@/types';
 import { parseGenres, getGenreColor } from '@/lib/genres';
 import { GraphLegend } from './GraphLegend';
-import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, RefreshCw, Loader2 } from 'lucide-react';
 
 interface ForceGraphProps {
   albums: Album[];
@@ -15,6 +15,8 @@ interface ForceGraphProps {
   highlightedItemType?: CollectionItemType | null;
   expandedAlbumId?: number | null;
   onAlbumExpand?: (albumId: number | null) => void;
+  onReloadCovers?: () => void;
+  isReloading?: boolean;
 }
 
 export function ForceGraph({
@@ -24,7 +26,9 @@ export function ForceGraph({
   highlightedItemId,
   highlightedItemType,
   expandedAlbumId,
-  onAlbumExpand
+  onAlbumExpand,
+  onReloadCovers,
+  isReloading = false
 }: ForceGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -730,16 +734,34 @@ export function ForceGraph({
       </div>
 
       {/* 缩放按钮 */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-        <button onClick={handleZoomIn} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
-          <ZoomIn size={18} />
-        </button>
-        <button onClick={handleZoomOut} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
-          <ZoomOut size={18} />
-        </button>
-        <button onClick={handleReset} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
-          <Maximize size={18} />
-        </button>
+      <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2">
+          <button onClick={handleZoomIn} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
+            <ZoomIn size={18} />
+          </button>
+          <button onClick={handleZoomOut} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
+            <ZoomOut size={18} />
+          </button>
+          <button onClick={handleReset} className="p-2 rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary transition-colors shadow-lg">
+            <Maximize size={18} />
+          </button>
+        </div>
+        {/* Reload Cover 按钮 */}
+        {onReloadCovers && (
+          <button
+            onClick={onReloadCovers}
+            disabled={isReloading}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-background-elevated/80 hover:bg-background-elevated text-foreground-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg border border-border-color"
+            title="强制重新获取所有封面"
+          >
+            {isReloading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <RefreshCw size={12} />
+            )}
+            Reload Cover
+          </button>
+        )}
       </div>
 
       {/* 图例 */}

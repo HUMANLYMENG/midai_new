@@ -14,7 +14,15 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw, LogOut, User, MoreVertical } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
+interface CoverStatusDetail {
+  total: number;
+  withoutCover: number;
+  withCover: number;
+}
+
 interface CoverStatus {
+  albums: CoverStatusDetail;
+  tracks: CoverStatusDetail;
   total: number;
   withoutCover: number;
   withCover: number;
@@ -198,46 +206,78 @@ export default function CollectionPage() {
     throw new Error(data.error);
   };
 
-  const handleBatchFetchCovers = async (force: boolean = false) => {
+  const handleBatchFetchCovers = async (force: boolean = false, type: 'all' | 'albums' | 'tracks' = 'all') => {
     const totalToFetch = force
       ? (coverStatus?.total || 0)
       : (coverStatus?.withoutCover || 0);
+
+    const typeLabel = type === 'albums' ? 'albums' : type === 'tracks' ? 'tracks' : 'all';
 
     setBatchProgress({
       isRunning: true,
       current: 0,
       total: totalToFetch,
-      message: force ? 'Refreshing all covers...' : 'Fetching missing covers...',
+      message: force ? `Refreshing all ${typeLabel} covers...` : `Fetching missing ${typeLabel} covers...`,
     });
     setShowBatchModal(true);
 
     try {
-      const res = await fetch('/api/covers/batch', {
+      // 第一步：获取进度流 ID
+      const initRes = await fetch('/api/covers/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force }),
+        body: JSON.stringify({ force, type }),
       });
-      const data = await res.json();
+      const initData = await initRes.json();
 
-      if (data.success) {
-        setBatchProgress({
-          isRunning: false,
-          current: data.data.updated,
-          total: data.data.total,
-          message: `Completed! Updated: ${data.data.updated}, Failed: ${data.data.failed}`,
-        });
-        // 递增刷新 key 来强制图片重新加载
-        setImageRefreshKey(prev => prev + 1);
-        fetchCoverStatus();
-      } else {
-        setBatchProgress({
-          isRunning: false,
-          current: 0,
-          total: 0,
-          message: data.error || 'Failed',
-        });
+      if (!initData.success || !initData.progressId) {
+        throw new Error('Failed to initialize progress');
       }
+
+      const { progressId, streamUrl } = initData;
+
+      // 第二步：启动后台处理
+      fetch('/api/covers/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force, type, progressId }),
+      });
+
+      // 第三步：连接 SSE 进度流
+      const eventSource = new EventSource(streamUrl);
+      
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        setBatchProgress({
+          isRunning: !data.completed,
+          current: data.current,
+          total: data.total,
+          message: data.message,
+        });
+
+        if (data.completed) {
+          eventSource.close();
+          // 刷新数据
+          setImageRefreshKey(prev => prev + 1);
+          fetchAlbums();
+          fetchTracks();
+          fetchCoverStatus();
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        eventSource.close();
+        setBatchProgress(prev => ({
+          ...prev,
+          isRunning: false,
+          message: 'Connection error',
+        }));
+      };
+
     } catch (error) {
+      console.error('Batch fetch error:', error);
       setBatchProgress({
         isRunning: false,
         current: 0,
@@ -404,15 +444,15 @@ export default function CollectionPage() {
         <div className="flex-1 h-full relative min-w-0">
           {/* Toolbar */}
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-            {/* 批量获取封面按钮 - 当有需要时显示 */}
+            {/* 获取缺失封面按钮 - 当有需要时显示 */}
             {coverStatus && coverStatus.withoutCover > 0 && (
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleBatchFetchCovers(false)}
+                onClick={() => handleBatchFetchCovers(false, 'all')}
                 disabled={batchProgress.isRunning}
                 className="flex items-center gap-1"
-                title="获取缺失封面的专辑"
+                title={`获取 ${coverStatus.withoutCover} 个缺失封面（${coverStatus.albums.withoutCover} 专辑 + ${coverStatus.tracks.withoutCover} 单曲）`}
               >
                 {batchProgress.isRunning ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -422,26 +462,6 @@ export default function CollectionPage() {
                 Get {coverStatus.withoutCover} Covers
               </Button>
             )}
-            {/* 刷新所有封面按钮 - 始终显示 */}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                if (confirm('确定要重新获取所有专辑封面吗？这将覆盖已有的封面。')) {
-                  handleBatchFetchCovers(true);
-                }
-              }}
-              disabled={batchProgress.isRunning}
-              className="flex items-center gap-1"
-              title="强制重新获取所有专辑封面"
-            >
-              {batchProgress.isRunning ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <RefreshCw size={14} />
-              )}
-              Refresh All
-            </Button>
             <Button variant="secondary" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </Button>
@@ -452,6 +472,8 @@ export default function CollectionPage() {
               <Plus size={16} />
             </Button>
           </div>
+
+
 
           {/* Graph - 填满容器 */}
           {isLoading ? (
@@ -467,6 +489,12 @@ export default function CollectionPage() {
               highlightedItemType={highlightedItemType}
               expandedAlbumId={expandedAlbumId}
               onAlbumExpand={setExpandedAlbumId}
+              onReloadCovers={() => {
+                if (confirm('确定要重新获取所有封面吗？这将覆盖已有的封面。')) {
+                  handleBatchFetchCovers(true, 'all');
+                }
+              }}
+              isReloading={batchProgress.isRunning}
             />
           )}
         </div>

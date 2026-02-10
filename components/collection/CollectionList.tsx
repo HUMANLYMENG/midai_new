@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useRef } from 'react';
 import { Album, Track, SortOption, CollectionItem, CollectionItemType } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Disc3, Music, Edit3, Trash2, Target, Search, ImageIcon } from 'lucide-react';
@@ -110,18 +110,70 @@ export function CollectionList({
     item: null,
     type: null,
   });
+  
+  // 用于滚动的 ref
+  const listRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  // 当前显示的项目
-  const currentItems = useMemo(() => {
-    return activeTab === 'album' ? albums : tracks;
-  }, [activeTab, albums, tracks]);
+  // 获取排序键值
+  const getSortKey = (item: CollectionItem, sortType: SortOption): string => {
+    switch (sortType) {
+      case 'alphabet':
+        return item.title.toLowerCase();
+      case 'artist':
+        return item.artist.toLowerCase();
+      case 'genre':
+        return (item.genre || '').toLowerCase();
+      case 'label':
+        return (item.label || '').toLowerCase();
+      case 'album':
+        if ('albumName' in item) {
+          return item.albumName.toLowerCase();
+        }
+        return item.title.toLowerCase();
+      default:
+        return '';
+    }
+  };
+
+  // 获取首字母（用于索引）
+  const getFirstLetter = (item: CollectionItem, sortType: SortOption): string => {
+    const key = getSortKey(item, sortType);
+    if (!key) return '#';
+    const char = key.charAt(0);
+    // 如果是英文字母，返回大写
+    if (/[a-z]/i.test(char)) {
+      return char.toUpperCase();
+    }
+    // 如果是数字，归为 #
+    if (/\d/.test(char)) {
+      return '#';
+    }
+    // 其他字符（如中文），尝试用拼音首字母或返回原字符
+    return char.toUpperCase();
+  };
+
+  // 当前显示的项目（已排序）
+  const sortedItems = useMemo(() => {
+    const items = activeTab === 'album' ? albums : tracks;
+    
+    if (!sort || sort === 'default') {
+      return items;
+    }
+    
+    return [...items].sort((a, b) => {
+      const keyA = getSortKey(a, sort);
+      const keyB = getSortKey(b, sort);
+      return keyA.localeCompare(keyB);
+    });
+  }, [activeTab, albums, tracks, sort]);
 
   // 过滤项目
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return currentItems;
+    if (!searchQuery.trim()) return sortedItems;
 
     const query = searchQuery.toLowerCase();
-    return currentItems.filter((item) => {
+    return sortedItems.filter((item) => {
       const matchesBasic =
         item.title.toLowerCase().includes(query) ||
         item.artist.toLowerCase().includes(query) ||
@@ -135,7 +187,34 @@ export function CollectionList({
 
       return matchesBasic;
     });
-  }, [currentItems, searchQuery, activeTab]);
+  }, [sortedItems, searchQuery, activeTab]);
+
+  // 生成分组索引（仅对 genre/artist/label/alphabet 排序）
+  const groupedItems = useMemo(() => {
+    if (sort === 'default') {
+      return { letters: [] as string[], groups: {} as Record<string, CollectionItem[]> };
+    }
+
+    const groups: Record<string, CollectionItem[]> = {};
+    
+    filteredItems.forEach((item) => {
+      const letter = getFirstLetter(item, sort);
+      if (!groups[letter]) {
+        groups[letter] = [];
+      }
+      groups[letter].push(item);
+    });
+
+    // 排序字母
+    const letters = Object.keys(groups).sort((a, b) => {
+      // # 排在最后
+      if (a === '#') return 1;
+      if (b === '#') return -1;
+      return a.localeCompare(b);
+    });
+
+    return { letters, groups };
+  }, [filteredItems, sort]);
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, item: CollectionItem, type: CollectionItemType) => {
@@ -212,6 +291,72 @@ export function CollectionList({
     return item.artist;
   };
 
+  // 滚动到指定字母
+  const scrollToLetter = (letter: string) => {
+    const element = itemRefs.current.get(`header-${letter}`);
+    if (element && listRef.current) {
+      const listRect = listRef.current.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
+      const scrollTop = listRef.current.scrollTop + elementRect.top - listRect.top;
+      listRef.current.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    }
+  };
+
+  // 渲染列表项
+  const renderItem = (item: CollectionItem, index: number) => (
+    <motion.div
+      key={`${activeTab}-${item.id}`}
+      ref={(el) => {
+        if (el) itemRefs.current.set(`${activeTab}-${item.id}`, el);
+      }}
+      layout
+      layoutId={`${activeTab}-${item.id}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.01, 0.3) }}
+      onClick={() => onItemClick(item, activeTab)}
+      onContextMenu={(e) => handleContextMenu(e, item, activeTab)}
+      className={`
+        group flex items-center gap-3 p-3 rounded-xl cursor-pointer
+        transition-all duration-200 ease-out
+        ${isSelected(item, activeTab)
+          ? 'bg-accent/20 ring-1 ring-accent/50'
+          : 'hover:bg-white/5'
+        }
+      `}
+    >
+      {/* Cover */}
+      <div
+        className={`
+        relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0
+        transition-transform duration-200
+        ${isSelected(item, activeTab) ? 'ring-2 ring-accent' : ''}
+      `}
+      >
+        <ItemCover item={item} isSelected={isSelected(item, activeTab)} type={activeTab} />
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground-primary truncate">
+          {item.title}
+        </p>
+        <p className="text-xs text-foreground-secondary truncate">
+          {getItemSubtitle(item)}
+        </p>
+        {item.genre && (
+          <p className="text-xs text-foreground-muted truncate">
+            {item.genre.split(',')[0]}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  // 判断是否需要显示字母索引
+  const showLetterIndex = sort !== 'default' && groupedItems.letters.length > 0;
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-border-color flex-shrink-0 space-y-3">
@@ -272,70 +417,69 @@ export function CollectionList({
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
-        <AnimatePresence mode="popLayout">
-          {filteredItems.map((item, index) => (
-            <motion.div
-              key={`${activeTab}-${item.id}`}
-              layout
-              layoutId={`${activeTab}-${item.id}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2, delay: index * 0.02 }}
-              onClick={() => onItemClick(item, activeTab)}
-              onContextMenu={(e) => handleContextMenu(e, item, activeTab)}
-              className={`
-                group flex items-center gap-3 p-3 rounded-xl cursor-pointer
-                transition-all duration-200 ease-out
-                ${isSelected(item, activeTab)
-                  ? 'bg-accent/20 ring-1 ring-accent/50'
-                  : 'hover:bg-white/5'
-                }
-              `}
-            >
-              {/* Cover */}
-              <div
-                className={`
-                relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0
-                transition-transform duration-200
-                ${isSelected(item, activeTab) ? 'ring-2 ring-accent' : ''}
-              `}
+      {/* List with Letter Index */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Main List */}
+        <div 
+          ref={listRef}
+          className="flex-1 overflow-y-auto p-2 scrollbar-thin"
+        >
+          {sort === 'default' ? (
+            // 默认排序 - 不分组
+            <AnimatePresence mode="popLayout">
+              {filteredItems.map((item, index) => renderItem(item, index))}
+            </AnimatePresence>
+          ) : (
+            // 分组排序
+            <AnimatePresence mode="popLayout">
+              {groupedItems.letters.map((letter) => (
+                <div key={letter}>
+                  {/* Group Header */}
+                  <div
+                    ref={(el) => {
+                      if (el) itemRefs.current.set(`header-${letter}`, el);
+                    }}
+                    className="sticky top-0 z-10 py-2 px-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider bg-background-secondary/80 backdrop-blur-sm border-y border-border-color/50"
+                  >
+                    {letter}
+                  </div>
+                  {/* Group Items */}
+                  {groupedItems.groups[letter].map((item, index) => renderItem(item, index))}
+                </div>
+              ))}
+            </AnimatePresence>
+          )}
+
+          {filteredItems.length === 0 && (
+            <div className="text-center py-8 text-foreground-muted">
+              {activeTab === 'album' ? (
+                <Disc3 size={48} className="mx-auto mb-3 opacity-50" />
+              ) : (
+                <Music size={48} className="mx-auto mb-3 opacity-50" />
+              )}
+              <p className="text-sm">
+                {searchQuery ? `No ${activeTab}s found` : `No ${activeTab}s yet`}
+              </p>
+              <p className="text-xs mt-1">
+                {searchQuery ? 'Try a different search' : 'Right click to add'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Letter Index Sidebar */}
+        {showLetterIndex && (
+          <div className="w-6 flex-shrink-0 py-2 flex flex-col items-center gap-0.5 overflow-y-auto scrollbar-thin border-l border-border-color/30">
+            {groupedItems.letters.map((letter) => (
+              <button
+                key={letter}
+                onClick={() => scrollToLetter(letter)}
+                className="w-5 h-5 flex items-center justify-center text-[10px] font-medium text-foreground-muted hover:text-accent hover:bg-accent/10 rounded transition-all"
+                title={`Jump to ${letter}`}
               >
-                <ItemCover item={item} isSelected={isSelected(item, activeTab)} type={activeTab} />
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground-primary truncate">
-                  {item.title}
-                </p>
-                <p className="text-xs text-foreground-secondary truncate">
-                  {getItemSubtitle(item)}
-                </p>
-                {item.genre && (
-                  <p className="text-xs text-foreground-muted truncate">
-                    {item.genre.split(',')[0]}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-8 text-foreground-muted">
-            {activeTab === 'album' ? (
-              <Disc3 size={48} className="mx-auto mb-3 opacity-50" />
-            ) : (
-              <Music size={48} className="mx-auto mb-3 opacity-50" />
-            )}
-            <p className="text-sm">
-              {searchQuery ? `No ${activeTab}s found` : `No ${activeTab}s yet`}
-            </p>
-            <p className="text-xs mt-1">
-              {searchQuery ? 'Try a different search' : 'Right click to add'}
-            </p>
+                {letter}
+              </button>
+            ))}
           </div>
         )}
       </div>
