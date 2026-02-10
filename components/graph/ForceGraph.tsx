@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 import { GraphNode, GraphLink, Album, Track, CollectionItemType } from '@/types';
 import { parseGenres, getGenreColor } from '@/lib/genres';
@@ -13,26 +13,22 @@ interface ForceGraphProps {
   onNodeClick?: (item: Album | Track) => void;
   highlightedItemId?: number | null;
   highlightedItemType?: CollectionItemType | null;
-  expandedAlbumId?: number | null;
-  onAlbumExpand?: (albumId: number | null) => void;
   onReloadCovers?: () => void;
   isReloading?: boolean;
 }
 
 export function ForceGraph({
   albums,
-  tracks = [],
   onNodeClick,
   highlightedItemId,
   highlightedItemType,
-  expandedAlbumId,
-  onAlbumExpand,
   onReloadCovers,
   isReloading = false
 }: ForceGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const simulationRef = useRef<d3.Simulation<GraphNode, undefined> | null>(null);
+  const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
   const nodeGroupsRef = useRef<any>(null);
   const linksRef = useRef<any>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -40,25 +36,21 @@ export function ForceGraph({
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
-  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const { clientWidth, clientHeight } = containerRef.current;
-        setDimensions({ width: clientWidth, height: clientHeight });
-      }
-    };
-    
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
-
   const { width, height } = dimensions;
 
-  // 准备数据 - 初始位置靠近中心
+  // 同步外部高亮状态
+  useEffect(() => {
+    if (highlightedItemType === 'album' && highlightedItemId) {
+      setSelectedAlbumId(highlightedItemId);
+    } else if (highlightedItemType === 'track') {
+      // 单曲不显示在图谱中，只清除专辑高亮
+      setSelectedAlbumId(null);
+    }
+  }, [highlightedItemId, highlightedItemType]);
+
+  // 准备数据 - 只包含专辑和流派
   const { nodes, links, genres } = useMemo(() => {
     const graphNodes: GraphNode[] = [];
     const graphLinks: GraphLink[] = [];
@@ -70,10 +62,8 @@ export function ForceGraph({
     // 创建专辑节点
     albums.forEach((album, i) => {
       const albumGenres = parseGenres(album.genre);
-
-      // 专辑节点：在中心附近随机分布，半径较小
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 80; // 0-80px 范围内
+      const radius = Math.random() * 80;
 
       graphNodes.push({
         id: `album-${album.id}`,
@@ -96,90 +86,11 @@ export function ForceGraph({
       });
     });
 
-    // 创建单曲节点 - 聚合模式：只有展开的专辑才显示其单曲
-    tracks.forEach((track, i) => {
-      // 查找对应的专辑
-      const parentAlbum = albums.find(a =>
-        a.title.toLowerCase() === track.albumName.toLowerCase() ||
-        track.albumName.toLowerCase().includes(a.title.toLowerCase())
-      );
-
-      const trackGenres = parseGenres(track.genre);
-      trackGenres.forEach(g => genreSet.add(g));
-
-      // 聚合逻辑：
-      // 1. 如果单曲有所属专辑，只有该专辑被展开时才显示单曲
-      // 2. 如果单曲没有所属专辑，直接连接到流派节点
-      if (parentAlbum) {
-        // 只有展开的专辑才显示其单曲
-        if (expandedAlbumId === parentAlbum.id) {
-          // 找到父专辑节点的位置（如果存在）
-          const parentNode = graphNodes.find(n => n.id === `album-${parentAlbum.id}`);
-          const parentX = parentNode?.x ?? centerX;
-          const parentY = parentNode?.y ?? centerY;
-
-          // 均匀分布在专辑周围
-          const tracksOfAlbum = tracks.filter(t =>
-            t.albumName.toLowerCase() === parentAlbum.title.toLowerCase() ||
-            parentAlbum.title.toLowerCase().includes(t.albumName.toLowerCase())
-          );
-          const trackIndex = tracksOfAlbum.findIndex(t => t.id === track.id);
-          const totalTracks = tracksOfAlbum.length || 1;
-          const angle = (trackIndex / totalTracks) * Math.PI * 2;
-          const radius = 45; // 固定距离围绕专辑
-
-          graphNodes.push({
-            id: `track-${track.id}`,
-            type: 'track',
-            trackId: track.id,
-            artist: track.artist,
-            genre: trackGenres,
-            coverUrl: track.coverUrl,
-            albumName: track.albumName,
-            r: 8, // 比专辑小
-            x: parentX + radius * Math.cos(angle),
-            y: parentY + radius * Math.sin(angle),
-          });
-
-          graphLinks.push({
-            source: `track-${track.id}`,
-            target: `album-${parentAlbum.id}`,
-          });
-        }
-      } else {
-        // 没有专辑的单曲，直接连接到流派
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 100 + Math.random() * 80;
-
-        graphNodes.push({
-          id: `track-${track.id}`,
-          type: 'track',
-          trackId: track.id,
-          artist: track.artist,
-          genre: trackGenres,
-          coverUrl: track.coverUrl,
-          albumName: track.albumName,
-          r: 10,
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle),
-        });
-
-        // 未找到专辑，直接连接到流派
-        trackGenres.forEach((genre) => {
-          graphLinks.push({
-            source: `track-${track.id}`,
-            target: `genre-${genre}`,
-          });
-        });
-      }
-    });
-
-    // 流派节点：放在中心区域
+    // 流派节点
     Array.from(genreSet).forEach((genre, i) => {
       const count = genreSet.size;
-      // 在中心小范围内均匀分布
       const angle = (i / count) * Math.PI * 2;
-      const radius = 30 + (i % 3) * 15; // 30-60px 范围内
+      const radius = 30 + (i % 3) * 15;
 
       graphNodes.push({
         id: `genre-${genre}`,
@@ -193,30 +104,7 @@ export function ForceGraph({
     });
 
     return { nodes: graphNodes, links: graphLinks, genres: Array.from(genreSet) };
-  }, [albums, tracks, width, height, expandedAlbumId]);
-
-  // 计算节点是否与当前选中状态相关
-  const isNodeRelated = (node: GraphNode): boolean => {
-    if (selectedGenre) {
-      const genreNodeId = `genre-${selectedGenre}`;
-      if (node.id === genreNodeId) return true;
-      if ((node.type === 'album' || node.type === 'track') && node.genre?.includes(selectedGenre)) return true;
-      return false;
-    }
-    if (selectedAlbumId) {
-      const albumNodeId = `album-${selectedAlbumId}`;
-      if (node.id === albumNodeId) return true;
-      const albumNode = nodes.find(n => n.id === albumNodeId);
-      const albumGenres = albumNode?.genre || [];
-      if (node.type === 'genre' && albumGenres.includes(node.genre?.[0] || '')) return true;
-      // 单曲如果属于该专辑也相关
-      if (node.type === 'track' && node.albumName && albumNode) {
-        return node.albumName.toLowerCase() === albumNode.id.replace('album-', '').toLowerCase();
-      }
-      return false;
-    }
-    return true; // 无选中状态时所有节点都相关
-  };
+  }, [albums, width, height]);
 
   // 初始化
   useEffect(() => {
@@ -241,6 +129,7 @@ export function ForceGraph({
 
     // 主容器
     const g = svg.append('g');
+    gRef.current = g;
 
     // 缩放行为
     const zoom = d3.zoom<SVGSVGElement, unknown>()
@@ -271,7 +160,6 @@ export function ForceGraph({
         .radius(d => (d.r || 18) + 5)
         .strength(0.8)
       )
-      // 边界力
       .force('boundary', () => {
         const margin = 50;
         nodes.forEach(node => {
@@ -328,8 +216,8 @@ export function ForceGraph({
       .attr('stroke-width', d => d.type === 'album' ? 2 : 0)
       .style('filter', d => d.type === 'genre' ? `drop-shadow(0 0 8px ${d.color || '#888'})` : 'drop-shadow(0 0 4px rgba(100,150,255,0.3))');
 
-    // 封面 - 专辑和单曲都可以有
-    nodeGroup.filter(d => (d.type === 'album' || d.type === 'track') && !!d.coverUrl)
+    // 封面
+    nodeGroup.filter(d => d.type === 'album' && !!d.coverUrl)
       .append('image')
       .attr('class', 'node-image')
       .attr('xlink:href', d => d.coverUrl || '')
@@ -348,37 +236,6 @@ export function ForceGraph({
       .attr('font-size', '10px')
       .attr('fill', 'var(--text-primary)')
       .style('text-shadow', '0 1px 4px rgba(0,0,0,0.8)');
-
-    // 专辑展开指示器 - 显示专辑是否有单曲以及展开状态
-    const albumWithTracks = nodeGroup.filter(d => {
-      if (d.type !== 'album') return false;
-      const albumId = parseInt(d.id.replace('album-', ''));
-      const album = albums.find(a => a.id === albumId);
-      if (!album) return false;
-      // 检查是否有属于该专辑的单曲
-      return tracks.some(t =>
-        t.albumName.toLowerCase() === album.title.toLowerCase() ||
-        album.title.toLowerCase().includes(t.albumName.toLowerCase())
-      );
-    });
-
-    // 展开状态指示点
-    albumWithTracks.append('circle')
-      .attr('class', 'expand-indicator')
-      .attr('r', 4)
-      .attr('cx', d => {
-        const albumId = parseInt(d.id.replace('album-', ''));
-        const isExpanded = expandedAlbumId === albumId;
-        return isExpanded ? -(d.r || 18) - 2 : (d.r || 18) + 2;
-      })
-      .attr('cy', d => -(d.r || 18) - 2)
-      .attr('fill', d => {
-        const albumId = parseInt(d.id.replace('album-', ''));
-        return expandedAlbumId === albumId ? '#4ade80' : '#60a5fa'; // 展开=绿色，收起=蓝色
-      })
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 1)
-      .style('filter', 'drop-shadow(0 0 2px rgba(0,0,0,0.5))');
 
     // 拖拽节点
     const drag = d3.drag<SVGGElement, GraphNode>()
@@ -401,32 +258,18 @@ export function ForceGraph({
 
     nodeGroup.call(drag as any);
 
-    // 交互 - 鼠标悬停、单击高亮、双击打开编辑
+    // 交互
     nodeGroup
-      .on('mouseenter', (event, d) => {
-        setHoveredNodeId(d.id);
-      })
-      .on('mouseleave', (event, d) => {
-        setHoveredNodeId(null);
-      })
+      .on('mouseenter', (event, d) => setHoveredNodeId(d.id))
+      .on('mouseleave', (event, d) => setHoveredNodeId(null))
       .on('click', (event, d) => {
         event.stopPropagation();
         if (d.type === 'genre') {
-          // 点击流派节点，高亮该流派
           const genre = d.id.replace('genre-', '');
           handleGenreClick(genre);
         } else if (d.type === 'album') {
-          // 点击专辑节点，切换展开/收起状态
           const albumId = parseInt(d.id.replace('album-', ''));
-          if (onAlbumExpand) {
-            // 如果点击的是已展开的专辑，则收起；否则展开
-            onAlbumExpand(expandedAlbumId === albumId ? null : albumId);
-          }
           handleAlbumClick(albumId);
-        } else if (d.type === 'track') {
-          // 点击单曲节点，高亮该单曲
-          const trackId = parseInt(d.id.replace('track-', ''));
-          handleTrackClick(trackId);
         }
       })
       .on('dblclick', (event, d) => {
@@ -435,10 +278,6 @@ export function ForceGraph({
           const albumId = parseInt(d.id.replace('album-', ''));
           const album = albums.find(a => a.id === albumId);
           if (album && onNodeClick) onNodeClick(album);
-        } else if (d.type === 'track') {
-          const trackId = parseInt(d.id.replace('track-', ''));
-          const track = tracks.find(t => t.id === trackId);
-          if (track && onNodeClick) onNodeClick(track);
         }
       });
 
@@ -468,76 +307,60 @@ export function ForceGraph({
     };
   }, [albums, width, height]);
 
-  // 处理流派点击（图例或节点）
+  // 处理流派点击
   const handleGenreClick = (genre: string) => {
     setSelectedGenre(prev => prev === genre ? null : genre);
-    setSelectedAlbumId(null); // 取消专辑选择
-    setSelectedTrackId(null); // 取消单曲选择
+    setSelectedAlbumId(null);
   };
 
   // 处理专辑点击
   const handleAlbumClick = (albumId: number) => {
     setSelectedAlbumId(prev => prev === albumId ? null : albumId);
-    setSelectedTrackId(null); // 取消单曲选择
-    setSelectedGenre(null); // 取消流派选择
+    setSelectedGenre(null);
   };
 
-  // 处理单曲点击
-  const handleTrackClick = (trackId: number) => {
-    setSelectedTrackId(prev => prev === trackId ? null : trackId);
-    setSelectedAlbumId(null); // 取消专辑选择
-    setSelectedGenre(null); // 取消流派选择
-  };
-
-  // 处理空白处点击，取消选中
+  // 处理空白处点击
   const handleBackgroundClick = () => {
     setSelectedGenre(null);
     setSelectedAlbumId(null);
-    setSelectedTrackId(null);
   };
 
-  // 高亮效果（流派或专辑）
+  // 高亮效果
   useEffect(() => {
     if (!nodeGroupsRef.current || !linksRef.current) return;
     
     if (selectedGenre) {
-      // 流派高亮模式
       const genreNodeId = `genre-${selectedGenre}`;
       
-      // 节点样式
       nodeGroupsRef.current.transition().duration(300)
         .style('opacity', (d: any) => {
           if (d.id === genreNodeId) return 1;
-          if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return 1;
+          if (d.type === 'album' && d.genre?.includes(selectedGenre)) return 1;
           return 0.15;
         });
 
-      // 节点圆圈样式
       nodeGroupsRef.current.select('.main-circle').transition().duration(300)
         .attr('stroke', (d: any) => {
           if (d.id === genreNodeId) return '#fff';
-          if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return (d.color || '#888');
+          if (d.type === 'album' && d.genre?.includes(selectedGenre)) return (d.color || '#888');
           return 'rgba(150, 180, 220, 0.2)';
         })
         .attr('stroke-width', (d: any) => {
           if (d.id === genreNodeId) return 3;
-          if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return 2;
+          if (d.type === 'album' && d.genre?.includes(selectedGenre)) return 2;
           return 1;
         });
 
-      // 连线样式
       linksRef.current.transition().duration(300)
         .attr('stroke', (d: any) => {
           const sid = d.source.id || d.source;
           const tid = d.target.id || d.target;
-          const isConnected = sid === genreNodeId || tid === genreNodeId;
-          return isConnected ? 'rgba(100, 230, 255, 0.9)' : 'rgba(100, 180, 255, 0.1)';
+          return (sid === genreNodeId || tid === genreNodeId) ? 'rgba(100, 230, 255, 0.9)' : 'rgba(100, 180, 255, 0.1)';
         })
         .attr('stroke-width', (d: any) => {
           const sid = d.source.id || d.source;
           const tid = d.target.id || d.target;
-          const isConnected = sid === genreNodeId || tid === genreNodeId;
-          return isConnected ? 2.5 : 0.5;
+          return (sid === genreNodeId || tid === genreNodeId) ? 2.5 : 0.5;
         })
         .style('opacity', (d: any) => {
           const sid = d.source.id || d.source;
@@ -546,14 +369,11 @@ export function ForceGraph({
         });
     }
     else if (selectedAlbumId) {
-      // 专辑高亮模式
       const albumNodeId = `album-${selectedAlbumId}`;
       
-      // 获取该专辑的流派
       const albumNode = nodes.find(n => n.id === albumNodeId);
       const albumGenres = albumNode?.genre || [];
       
-      // 节点样式
       nodeGroupsRef.current.transition().duration(300)
         .style('opacity', (d: any) => {
           if (d.id === albumNodeId) return 1;
@@ -561,7 +381,6 @@ export function ForceGraph({
           return 0.15;
         });
       
-      // 节点圆圈样式
       nodeGroupsRef.current.select('.main-circle').transition().duration(300)
         .attr('stroke', (d: any) => {
           if (d.id === albumNodeId) return '#fff';
@@ -574,19 +393,16 @@ export function ForceGraph({
           return 1;
         });
 
-      // 连线样式
       linksRef.current.transition().duration(300)
         .attr('stroke', (d: any) => {
           const sid = d.source.id || d.source;
           const tid = d.target.id || d.target;
-          const isConnected = sid === albumNodeId || tid === albumNodeId;
-          return isConnected ? 'rgba(100, 230, 255, 0.9)' : 'rgba(100, 180, 255, 0.1)';
+          return (sid === albumNodeId || tid === albumNodeId) ? 'rgba(100, 230, 255, 0.9)' : 'rgba(100, 180, 255, 0.1)';
         })
         .attr('stroke-width', (d: any) => {
           const sid = d.source.id || d.source;
           const tid = d.target.id || d.target;
-          const isConnected = sid === albumNodeId || tid === albumNodeId;
-          return isConnected ? 2.5 : 0.5;
+          return (sid === albumNodeId || tid === albumNodeId) ? 2.5 : 0.5;
         })
         .style('opacity', (d: any) => {
           const sid = d.source.id || d.source;
@@ -594,7 +410,6 @@ export function ForceGraph({
           return (sid === albumNodeId || tid === albumNodeId) ? 1 : 0.15;
         });
     }
-    // 无高亮，恢复正常
     else {
       nodeGroupsRef.current.transition().duration(300).style('opacity', 1);
       nodeGroupsRef.current.select('.main-circle').transition().duration(300)
@@ -607,81 +422,64 @@ export function ForceGraph({
         .attr('stroke-width', 1.5)
         .style('opacity', 1);
     }
-  }, [selectedGenre, selectedAlbumId, selectedTrackId, nodes]);
+  }, [selectedGenre, selectedAlbumId, nodes]);
 
   // 悬停效果
   useEffect(() => {
     if (!nodeGroupsRef.current) return;
 
-    // 如果当前有选中状态，悬停效果需要与选中状态共存
-    const hasSelection = selectedGenre || selectedAlbumId || selectedTrackId;
+    const hasSelection = selectedGenre || selectedAlbumId;
 
     if (hoveredNodeId) {
-      const hoveredNode = nodes.find(n => n.id === hoveredNodeId);
-      const isRelated = hoveredNode ? isNodeRelated(hoveredNode) : false;
-      
       nodeGroupsRef.current.each(function(this: SVGGElement, d: any) {
         const el = d3.select(this);
-        
         if (d.id === hoveredNodeId) {
-          // 悬停的节点放大
           el.transition().duration(150)
             .attr('transform', `translate(${d.x},${d.y}) scale(1.15)`);
-          
-          // 增强发光效果
           el.select('.glow-circle').transition().duration(150)
             .attr('opacity', 0.5)
             .style('filter', 'blur(10px)');
-          
-          // 增强边框
           el.select('.main-circle').transition().duration(150)
             .attr('stroke', '#fff')
-            .attr('stroke-width', d.type === 'album' ? 4 : d.type === 'track' ? 3 : 2);
+            .attr('stroke-width', d.type === 'album' ? 4 : 2);
         } else if (!hasSelection) {
-          // 无选中状态时，其他节点轻微淡化
           el.transition().duration(150)
             .style('opacity', 0.5);
         }
-        // 有选中状态时，非悬停节点保持高亮/淡化状态不变
       });
     } else {
-      // 恢复 - 需要考虑当前选中状态
       nodeGroupsRef.current.each(function(this: SVGGElement, d: any) {
         const el = d3.select(this);
         el.transition().duration(150)
           .attr('transform', `translate(${d.x},${d.y}) scale(1)`);
-        
         el.select('.glow-circle').transition().duration(150)
           .attr('opacity', d.type === 'genre' ? 0.2 : 0)
           .style('filter', 'blur(4px)');
       });
 
       if (!hasSelection) {
-        // 无选中状态，全部恢复
         nodeGroupsRef.current.transition().duration(150).style('opacity', 1);
         nodeGroupsRef.current.select('.main-circle').transition().duration(150)
           .attr('stroke', (d: any) => d.type === 'genre' ? (d.color || '#888') : 'rgba(150, 180, 220, 0.6)')
-          .attr('stroke-width', (d: any) => d.type === 'album' ? 2 : d.type === 'track' ? 1.5 : 0);
+          .attr('stroke-width', (d: any) => d.type === 'album' ? 2 : 0);
       } else {
-        // 有选中状态，重新应用选中样式
-        // 延迟执行确保恢复动画完成
         setTimeout(() => {
           if (selectedGenre) {
             const genreNodeId = `genre-${selectedGenre}`;
             nodeGroupsRef.current.style('opacity', (d: any) => {
               if (d.id === genreNodeId) return 1;
-              if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return 1;
+              if (d.type === 'album' && d.genre?.includes(selectedGenre)) return 1;
               return 0.15;
             });
             nodeGroupsRef.current.select('.main-circle')
               .attr('stroke', (d: any) => {
                 if (d.id === genreNodeId) return '#fff';
-                if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return (d.color || '#888');
+                if (d.type === 'album' && d.genre?.includes(selectedGenre)) return (d.color || '#888');
                 return 'rgba(150, 180, 220, 0.2)';
               })
               .attr('stroke-width', (d: any) => {
                 if (d.id === genreNodeId) return 3;
-                if ((d.type === 'album' || d.type === 'track') && d.genre?.includes(selectedGenre)) return 2;
+                if (d.type === 'album' && d.genre?.includes(selectedGenre)) return 2;
                 return 1;
               });
           } else if (selectedAlbumId) {
@@ -709,7 +507,7 @@ export function ForceGraph({
         }, 160);
       }
     }
-  }, [hoveredNodeId, selectedGenre, selectedAlbumId, selectedTrackId, nodes]);
+  }, [hoveredNodeId, selectedGenre, selectedAlbumId, nodes]);
 
   // 缩放控制
   const handleZoomIn = () => {

@@ -57,7 +57,6 @@ export default function CollectionPage() {
   });
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
-  const [expandedAlbumId, setExpandedAlbumId] = useState<number | null>(null);
 
   // 检查登录状态（开发测试时禁用跳转）
   // useEffect(() => {
@@ -483,12 +482,9 @@ export default function CollectionPage() {
           ) : (
             <ForceGraph
               albums={rawAlbums}
-              tracks={tracks}
               onNodeClick={handleNodeClick}
               highlightedItemId={highlightedItemId}
               highlightedItemType={highlightedItemType}
-              expandedAlbumId={expandedAlbumId}
-              onAlbumExpand={setExpandedAlbumId}
               onReloadCovers={() => {
                 if (confirm('确定要重新获取所有封面吗？这将覆盖已有的封面。')) {
                   handleBatchFetchCovers(true, 'all');
