@@ -5,7 +5,7 @@ import * as d3 from 'd3';
 import { GraphNode, GraphLink, Album, CollectionItemType } from '@/types';
 import { parseGenres, getGenreColor } from '@/lib/genres';
 import { GraphLegend } from './GraphLegend';
-import { ZoomIn, ZoomOut, Maximize, RefreshCw, Loader2, Home } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, RefreshCw, Loader2, Home, Disc3, Calendar, Tag, Building2, User } from 'lucide-react';
 
 interface ForceGraphProps {
   albums: Album[];
@@ -37,6 +37,14 @@ export function ForceGraph({
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [selectedAlbumId, setSelectedAlbumId] = useState<number | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  
+  // 悬停信息卡片状态
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    album: Album | null;
+  }>({ visible: false, x: 0, y: 0, album: null });
   
   const { width, height } = dimensions;
 
@@ -81,9 +89,12 @@ export function ForceGraph({
         id: `album-${album.id}`,
         type: 'album',
         albumId: album.id,
+        title: album.title,
         artist: album.artist,
         genre: albumGenres,
         coverUrl: album.coverUrl,
+        releaseDate: album.releaseDate,
+        label: album.label,
         r: 18,
         x: radius * Math.cos(angle),
         y: radius * Math.sin(angle),
@@ -253,8 +264,43 @@ export function ForceGraph({
 
     // 交互
     nodeGroup
-      .on('mouseenter', (event, d) => setHoveredNodeId(d.id))
-      .on('mouseleave', (event, d) => setHoveredNodeId(null))
+      .on('mouseenter', (event, d) => {
+        setHoveredNodeId(d.id);
+        // 显示专辑信息卡片
+        if (d.type === 'album' && d.albumId) {
+          const album = albums.find(a => a.id === d.albumId);
+          if (album) {
+            // 计算 tooltip 位置（相对于容器的坐标）
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            if (containerRect) {
+              const tooltipX = event.clientX - containerRect.left + 20;
+              const tooltipY = event.clientY - containerRect.top - 20;
+              setTooltip({
+                visible: true,
+                x: tooltipX,
+                y: tooltipY,
+                album,
+              });
+            }
+          }
+        }
+      })
+      .on('mouseleave', (event, d) => {
+        setHoveredNodeId(null);
+        // 隐藏信息卡片
+        setTooltip(prev => ({ ...prev, visible: false }));
+      })
+      .on('mousemove', (event, d) => {
+        // 更新 tooltip 位置跟随鼠标
+        if (d.type === 'album' && tooltip.visible) {
+          const containerRect = containerRef.current?.getBoundingClientRect();
+          if (containerRect) {
+            const tooltipX = event.clientX - containerRect.left + 20;
+            const tooltipY = event.clientY - containerRect.top - 20;
+            setTooltip(prev => ({ ...prev, x: tooltipX, y: tooltipY }));
+          }
+        }
+      })
       .on('click', (event, d) => {
         event.stopPropagation();
         if (d.type === 'genre') {
@@ -596,6 +642,128 @@ export function ForceGraph({
           onGenreClick={handleGenreClick}
         />
       </div>
+
+      {/* 专辑悬停信息卡片 */}
+      {tooltip.visible && tooltip.album && (
+        <div
+          className="absolute z-50 pointer-events-none"
+          style={{
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: tooltip.x > width / 2 ? 'translateX(-105%)' : 'translateX(0)',
+          }}
+        >
+          <div className="w-64 bg-background-elevated/95 backdrop-blur-xl rounded-xl border border-border-color shadow-2xl overflow-hidden animate-scale-in">
+            {/* 顶部渐变条 */}
+            <div 
+              className="h-1.5 w-full"
+              style={{ 
+                background: tooltip.album.genre 
+                  ? `linear-gradient(90deg, ${getGenreColor(tooltip.album.genre.split(',')[0])}, transparent)` 
+                  : 'linear-gradient(90deg, #6366f1, transparent)' 
+              }}
+            />
+            
+            <div className="p-4">
+              {/* 封面和标题区域 */}
+              <div className="flex gap-3 mb-4">
+                {/* 封面图 */}
+                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-background-secondary shadow-md">
+                  {tooltip.album.coverUrl ? (
+                    <img
+                      src={tooltip.album.coverUrl}
+                      alt={tooltip.album.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-foreground-muted">
+                      <Disc3 size={24} />
+                    </div>
+                  )}
+                </div>
+                
+                {/* 标题和艺术家 */}
+                <div className="flex-1 min-w-0">
+                  {/* 类型标签 */}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ 
+                        backgroundColor: tooltip.album.genre 
+                          ? getGenreColor(tooltip.album.genre.split(',')[0]) 
+                          : '#6366f1' 
+                      }}
+                    />
+                    <span className="text-xs text-foreground-muted uppercase tracking-wide">专辑</span>
+                  </div>
+                  
+                  {/* 专辑名 */}
+                  <h3 className="text-sm font-semibold text-foreground-primary truncate leading-tight">
+                    {tooltip.album.title}
+                  </h3>
+                  
+                  {/* 艺术家 */}
+                  <p className="text-xs text-foreground-secondary truncate mt-0.5">
+                    {tooltip.album.artist}
+                  </p>
+                </div>
+              </div>
+
+              {/* 详细信息列表 */}
+              <div className="space-y-2.5">
+                {/* 艺术家 */}
+                <div className="flex items-center gap-2.5">
+                  <User size={13} className="text-foreground-muted flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-foreground-muted uppercase tracking-wide">艺术家</p>
+                    <p className="text-xs text-foreground-primary truncate">{tooltip.album.artist}</p>
+                  </div>
+                </div>
+
+                {/* 流派 */}
+                {tooltip.album.genre && (
+                  <div className="flex items-center gap-2.5">
+                    <Tag size={13} className="text-foreground-muted flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-foreground-muted uppercase tracking-wide">流派</p>
+                      <p className="text-xs text-foreground-primary truncate">{tooltip.album.genre}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 发行日期 */}
+                {tooltip.album.releaseDate && (
+                  <div className="flex items-center gap-2.5">
+                    <Calendar size={13} className="text-foreground-muted flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-foreground-muted uppercase tracking-wide">发行日期</p>
+                      <p className="text-xs text-foreground-primary truncate">{tooltip.album.releaseDate}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 厂牌 */}
+                {tooltip.album.label && (
+                  <div className="flex items-center gap-2.5">
+                    <Building2 size={13} className="text-foreground-muted flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-foreground-muted uppercase tracking-wide">厂牌</p>
+                      <p className="text-xs text-foreground-primary truncate">{tooltip.album.label}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 底部提示 */}
+            <div className="px-4 py-2 bg-background-secondary/50 border-t border-border-color">
+              <p className="text-[10px] text-foreground-muted text-center">
+                双击节点可编辑
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

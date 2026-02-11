@@ -30,6 +30,7 @@ export interface GraphNode {
   type: 'album' | 'track' | 'genre';
   albumId?: number;
   trackId?: number;
+  title?: string;  // 专辑/单曲名称
   artist?: string;
   genre?: string[];
   coverUrl?: string;
@@ -42,6 +43,8 @@ export interface GraphNode {
   fy?: number | null;
   r?: number;
   albumName?: string; // 单曲所属的专辑名
+  releaseDate?: string; // 发行日期
+  label?: string; // 厂牌
 }
 
 export interface GraphLink {
