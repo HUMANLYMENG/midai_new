@@ -1,5 +1,4 @@
-import NextAuth, { Session, User } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
+import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 
@@ -21,17 +20,17 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
 }
 
 export const authConfig = {
-  // 注意：使用 JWT 策略时不应设置 adapter
-  // adapter 仅用于数据库会话策略
   providers,
   callbacks: {
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session(params: any) {
+      const { session, token } = params
       if (session.user && token?.sub) {
         session.user.id = token.sub
       }
       return session
     },
-    async jwt({ token, account }: { token: JWT; account: any }) {
+    async jwt(params: any) {
+      const { token, account } = params
       // 首次登录时保存 account 信息
       if (account) {
         token.accessToken = account.access_token
@@ -48,15 +47,12 @@ export const authConfig = {
     error: '/auth/error',
   },
   session: {
-    // 使用 JWT 策略避免 Edge Runtime 问题和数据库依赖
     strategy: 'jwt' as const,
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
-  // 添加 debug 模式帮助诊断问题（生产环境可以关闭）
   debug: process.env.NODE_ENV === 'development',
 }
 
-// Create auth instance for use in other files
 const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
 
 export { handlers, auth, signIn, signOut }
