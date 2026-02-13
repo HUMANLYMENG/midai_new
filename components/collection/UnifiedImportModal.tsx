@@ -13,7 +13,11 @@ import type { SongInfo } from '@/lib/music-link-parser';
 interface UnifiedImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPlaylistImport: (url: string, onProgress?: (current: number, total: number) => void) => Promise<{ 
+  onPlaylistImport: (
+    url: string, 
+    onProgress?: (current: number, total: number) => void,
+    onExisting?: (count: number) => void
+  ) => Promise<{ 
     success: boolean; 
     imported: number; 
     skipped: number; 
@@ -43,6 +47,7 @@ export function UnifiedImportModal({
   } | null>(null);
   const [linkStep, setLinkStep] = useState<'input' | 'preview' | 'importing' | 'result'>('input');
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [existingSongs, setExistingSongs] = useState(0);
   
   const [file, setFile] = useState<File | null>(null);
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
@@ -137,13 +142,18 @@ export function UnifiedImportModal({
     setLinkStep('importing');
     setIsImporting(true);
     setImportProgress({ current: 0, total: linkPreview.songCount });
+    setExistingSongs(0);
     
     const onProgress = (current: number, total: number) => {
       setImportProgress({ current, total });
     };
     
     try {
-      const res = await onPlaylistImport(url, onProgress);
+      const res = await onPlaylistImport(url, onProgress, (existing) => {
+        setExistingSongs(existing);
+        // 快速跳过已存在的歌曲的显示
+        setImportProgress(prev => ({ ...prev, current: existing }));
+      });
       setLinkResult({
         ...res,
         totalSongs: linkPreview?.songCount,
@@ -359,11 +369,16 @@ export function UnifiedImportModal({
                     <p className="text-lg font-medium">
                       {importProgress.current >= importProgress.total && importProgress.total > 0
                         ? 'Finalizing...' 
-                        : 'Importing...'
+                        : existingSongs > 0 && importProgress.current <= existingSongs
+                          ? `Skipping ${existingSongs} existing songs...`
+                          : 'Importing...'
                       }
                     </p>
                     <p className="text-sm text-foreground-secondary">
-                      Fetching genres from MusicBrainz
+                      {existingSongs > 0 && importProgress.current <= existingSongs
+                        ? 'Fast-forwarding duplicates'
+                        : 'Fetching genres from MusicBrainz'
+                      }
                     </p>
                     {importProgress.current >= importProgress.total && importProgress.total > 0 && (
                       <p className="text-xs text-foreground-muted animate-pulse">
@@ -385,7 +400,9 @@ export function UnifiedImportModal({
                     <p className="text-center text-sm text-foreground-secondary">
                       {importProgress.current >= importProgress.total && importProgress.total > 0
                         ? 'Almost done...'
-                        : `${importProgress.current} / ${importProgress.total} songs`
+                        : existingSongs > 0 && importProgress.current <= existingSongs
+                          ? `${importProgress.current} / ${existingSongs} existing`
+                          : `${importProgress.current} / ${importProgress.total} songs`
                       }
                     </p>
                   </div>

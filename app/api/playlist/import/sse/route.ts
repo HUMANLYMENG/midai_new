@@ -64,11 +64,28 @@ export async function GET(request: NextRequest) {
           const playlist = parseResult.data;
           const songs = playlist.songs?.slice(0, limit) || [];
 
+          // 预先检查已存在的歌曲
+          let existingCount = 0;
+          for (const song of songs) {
+            const artist = song.artists[0] || 'Unknown Artist';
+            const albumName = song.album || '';
+            const exists = await prisma.track.findFirst({
+              where: {
+                userId,
+                title: { equals: song.name, mode: 'insensitive' },
+                artist: { equals: artist, mode: 'insensitive' },
+                albumName: { equals: albumName, mode: 'insensitive' },
+              },
+            });
+            if (exists) existingCount++;
+          }
+
           // 发送歌单信息
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: 'playlist',
             playlistName: playlist.name,
             total: songs.length,
+            existing: existingCount,
           })}
 \n`));
 

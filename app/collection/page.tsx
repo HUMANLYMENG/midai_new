@@ -251,7 +251,8 @@ export default function CollectionPage() {
 
   const handlePlaylistImport = async (
     url: string, 
-    onProgress?: (current: number, total: number) => void
+    onProgress?: (current: number, total: number) => void,
+    onExisting?: (count: number) => void
   ) => {
     return new Promise<{ 
       success: boolean; 
@@ -276,6 +277,10 @@ export default function CollectionPage() {
           case 'playlist':
             playlistName = data.playlistName;
             totalSongs = data.total;
+            // 通知前端已存在的歌曲数量
+            if (data.existing > 0 && onExisting) {
+              onExisting(data.existing);
+            }
             break;
             
           case 'progress':
