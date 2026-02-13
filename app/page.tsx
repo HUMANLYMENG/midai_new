@@ -218,8 +218,16 @@ export default function HomePage() {
 
       {/* Footer - Minimal */}
       <footer className="relative py-4 px-6 border-t border-border-color/30">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center space-y-2">
           <p className="text-xs text-foreground-muted">Midai - Music Collection Platform</p>
+          <a 
+            href="https://getsongbpm.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs text-foreground-muted hover:text-accent transition-colors"
+          >
+            GetSongBPM - Music Tempo Database
+          </a>
         </div>
       </footer>
     </div>
