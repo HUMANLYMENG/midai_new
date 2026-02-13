@@ -35,9 +35,11 @@ export const authConfig = {
   adapter,
   providers,
   callbacks: {
-    async session({ session, user }: { session: any; user: any }) {
+    async session({ session, user, token }: { session: any; user: any; token: any }) {
       if (session.user) {
-        session.user.id = user?.id || session.user.id
+        // JWT strategy: use token.sub as user id
+        // Database strategy: use user.id
+        session.user.id = token?.sub || user?.id || session.user.id
       }
       return session
     },
@@ -50,7 +52,9 @@ export const authConfig = {
     error: '/auth/error',
   },
   session: {
-    strategy: 'database' as const,
+    // Use JWT strategy to avoid Edge Runtime issues with database sessions
+    strategy: 'jwt' as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 }
 
