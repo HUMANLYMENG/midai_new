@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
+import { requireUserId } from '@/lib/auth';
 
 // GET /api/tracks/[id] - 获取单个单曲
 export async function GET(
@@ -9,10 +9,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const track = await prisma.track.findFirst({
@@ -46,10 +45,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     // 检查权限
@@ -109,10 +107,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     // 检查权限

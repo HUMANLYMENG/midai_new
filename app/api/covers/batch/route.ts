@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
+import { requireUserId } from '@/lib/auth';
 import { findBestCover } from '@/lib/cover';
 
 // GET /api/covers/batch - 获取封面统计（只统计专辑，单曲从专辑同步）
@@ -8,11 +8,9 @@ export async function GET(request: NextRequest) {
   console.log('[Covers Batch] Getting cover status...');
 
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      console.log('[Covers Batch] Using fallback dev user for status');
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     console.log('[Covers Batch] Status check for user:', userId);
@@ -40,11 +38,9 @@ export async function POST(request: NextRequest) {
   console.log('[Covers Batch] Starting cover fetch...');
 
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      console.log('[Covers Batch] Using fallback dev user');
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const body = await request.json();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
+import { requireUserId } from '@/lib/auth';
 
 // GET /api/albums/:id - 获取单个专辑（只能获取自己的）
 export async function GET(
@@ -9,11 +9,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    let userId = await getCurrentUserId(request);
-    // Fallback for development if not authenticated
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const album = await prisma.album.findFirst({
@@ -47,11 +45,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    let userId = await getCurrentUserId(request);
-    // Fallback for development if not authenticated
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const body = await request.json();
@@ -110,11 +106,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    let userId = await getCurrentUserId(request);
-    // Fallback for development if not authenticated
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     // 先检查专辑是否属于当前用户

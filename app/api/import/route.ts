@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
+import { requireUserId } from '@/lib/auth';
 import Papa from 'papaparse';
 
 export async function POST(request: NextRequest) {
   try {
-    let userId = await getCurrentUserId(request);
-    // Fallback for development if not authenticated
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const formData = await request.formData();

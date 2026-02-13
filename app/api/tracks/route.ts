@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
+import { requireUserId } from '@/lib/auth';
 
 // GET /api/tracks - 获取当前用户的所有单曲
 export async function GET(request: NextRequest) {
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const { searchParams } = new URL(request.url);
@@ -64,10 +63,9 @@ async function findAlbumCaseInsensitive(userId: string, title: string, artist: s
 // POST /api/tracks - 创建单曲，自动创建所属专辑（如果不存在）
 export async function POST(request: NextRequest) {
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const body = await request.json();

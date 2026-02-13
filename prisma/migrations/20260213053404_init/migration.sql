@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - Added the required column `userId` to the `Album` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -48,10 +42,8 @@ CREATE TABLE "VerificationToken" (
     "expires" DATETIME NOT NULL
 );
 
--- RedefineTables
-PRAGMA defer_foreign_keys=ON;
-PRAGMA foreign_keys=OFF;
-CREATE TABLE "new_Album" (
+-- CreateTable
+CREATE TABLE "Album" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
     "artist" TEXT NOT NULL,
@@ -67,13 +59,25 @@ CREATE TABLE "new_Album" (
     "userId" TEXT NOT NULL,
     CONSTRAINT "Album_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-INSERT INTO "new_Album" ("artist", "comment", "coverUrl", "createdAt", "genre", "id", "label", "length", "releaseDate", "tag", "title", "updatedAt") SELECT "artist", "comment", "coverUrl", "createdAt", "genre", "id", "label", "length", "releaseDate", "tag", "title", "updatedAt" FROM "Album";
-DROP TABLE "Album";
-ALTER TABLE "new_Album" RENAME TO "Album";
-CREATE INDEX "Album_userId_genre_idx" ON "Album"("userId", "genre");
-CREATE UNIQUE INDEX "Album_userId_artist_title_key" ON "Album"("userId", "artist", "title");
-PRAGMA foreign_keys=ON;
-PRAGMA defer_foreign_keys=OFF;
+
+-- CreateTable
+CREATE TABLE "Track" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "title" TEXT NOT NULL,
+    "artist" TEXT NOT NULL,
+    "albumName" TEXT NOT NULL,
+    "releaseDate" TEXT,
+    "genre" TEXT,
+    "length" TEXT,
+    "label" TEXT,
+    "tag" TEXT,
+    "comment" TEXT,
+    "coverUrl" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "Track_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
@@ -92,3 +96,15 @@ CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
+
+-- CreateIndex
+CREATE INDEX "Album_userId_genre_idx" ON "Album"("userId", "genre");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Album_userId_artist_title_key" ON "Album"("userId", "artist", "title");
+
+-- CreateIndex
+CREATE INDEX "Track_userId_genre_idx" ON "Track"("userId", "genre");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Track_userId_artist_albumName_title_key" ON "Track"("userId", "artist", "albumName", "title");

@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
-import { findBestCover } from '@/lib/cover';
+import { requireUserId } from '@/lib/auth';
+import { getCoverWithCache } from '@/lib/cover-service';
+import { findInCache } from '@/lib/album-cache';
 
-// POST /api/covers/batch-process - 批量获取封面（用于 Get X Covers 按钮）
-// 只获取专辑封面，然后同步给对应的所有单曲
+// POST /api/covers/batch-process - 批量获取封面（带缓存）
 export async function POST(request: NextRequest) {
-  console.log('[Covers Batch Process] Starting batch cover fetch...');
+  console.log('[Covers Batch Process] Starting batch cover fetch with cache...');
 
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      console.log('[Covers Batch Process] Using fallback dev user');
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const body = await request.json();
@@ -24,6 +22,7 @@ export async function POST(request: NextRequest) {
     const results: any[] = [];
     let updated = 0;
     let failed = 0;
+    let cacheHits = 0;
     let syncedTracks = 0;
 
     // 获取需要处理的专辑
@@ -51,7 +50,13 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        const coverResult = await findBestCover(album.artist, album.title);
+        // 使用带缓存的封面获取
+        const coverResult = await getCoverWithCache(
+          album.artist,
+          album.title,
+          album.releaseDate,
+          force
+        );
 
         if (coverResult?.url) {
           // 更新专辑封面
@@ -61,7 +66,6 @@ export async function POST(request: NextRequest) {
           });
           
           // 同步更新该专辑对应的所有 track 的封面
-          // SQLite 不支持 mode: 'insensitive'，先查询再过滤
           const allTracks = await prisma.track.findMany({ where: { userId } });
           const matchingTracks = allTracks.filter(t => 
             t.albumName.toLowerCase() === album.title.toLowerCase() &&
@@ -77,12 +81,15 @@ export async function POST(request: NextRequest) {
           
           syncedTracks += matchingTracks.length;
           
+          if (coverResult.source === 'cache') cacheHits++;
+          
           results.push({
             id: album.id,
             title: album.title,
             type: 'album',
             status: 'success',
             coverUrl: coverResult.url,
+            source: coverResult.source,
             syncedTracks: matchingTracks.length,
           });
           updated++;
@@ -98,7 +105,9 @@ export async function POST(request: NextRequest) {
         }
 
         // 延迟避免请求过快
-        await new Promise(resolve => setTimeout(resolve, 200));
+        if (coverResult?.source !== 'cache') {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
       } catch (error) {
         console.error(`[Covers Batch Process] Error processing album "${album.title}":`, error);
         results.push({
@@ -112,13 +121,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[Covers Batch Process] Completed: ${updated} albums updated, ${syncedTracks} tracks synced, ${failed} failed`);
+    console.log(`[Covers Batch Process] Completed: ${updated} albums updated (${cacheHits} from cache), ${syncedTracks} tracks synced, ${failed} failed`);
 
     return NextResponse.json({
       success: true,
       data: {
         total: results.length,
         updated,
+        cacheHits,
         syncedTracks,
         failed,
         results,
@@ -134,16 +144,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/covers/batch-process - SSE 实时进度推送
-// 只获取专辑封面，然后同步给对应的所有单曲
+// GET /api/covers/batch-process - SSE 实时进度推送（带缓存）
 export async function GET(request: NextRequest) {
   const encoder = new TextEncoder();
   
   try {
-    let userId = await getCurrentUserId(request);
+    const userId = await requireUserId(request);
     if (userId instanceof NextResponse) {
-      const defaultUser = await getOrCreateDefaultUser();
-      userId = defaultUser.id;
+      return userId;
     }
 
     const { searchParams } = new URL(request.url);
@@ -162,6 +170,7 @@ export async function GET(request: NextRequest) {
       id: album.id,
       title: album.title,
       artist: album.artist,
+      releaseDate: album.releaseDate,
       coverUrl: album.coverUrl,
     }));
 
@@ -172,6 +181,7 @@ export async function GET(request: NextRequest) {
       async start(controller) {
         let current = 0;
         let updated = 0;
+        let cacheHits = 0;
         let syncedTracks = 0;
         let failed = 0;
         const results: any[] = [];
@@ -181,7 +191,9 @@ export async function GET(request: NextRequest) {
           type: 'start', 
           total,
           message: force ? 'Refreshing all covers...' : `Fetching ${total} album covers...`
-        })}\n\n`));
+        })}
+
+`));
 
         // 逐个处理专辑
         for (const item of itemsToProcess) {
@@ -194,7 +206,13 @@ export async function GET(request: NextRequest) {
             if (item.coverUrl && !force) {
               result = { status: 'skipped', message: 'Already has cover' };
             } else {
-              const coverResult = await findBestCover(item.artist, item.title);
+              const coverResult = await getCoverWithCache(
+                item.artist,
+                item.title,
+                item.releaseDate,
+                force
+              );
+              
               if (coverResult?.url) {
                 // 更新专辑封面
                 await prisma.album.update({
@@ -203,7 +221,6 @@ export async function GET(request: NextRequest) {
                 });
                 
                 // 同步更新该专辑对应的所有 track 的封面
-                // SQLite 不支持 mode: 'insensitive'，先查询再过滤
                 const allTracks = await prisma.track.findMany({ where: { userId } });
                 const matchingTracks = allTracks.filter(t => 
                   t.albumName.toLowerCase() === item.title.toLowerCase() &&
@@ -219,7 +236,14 @@ export async function GET(request: NextRequest) {
                 
                 syncedTracks += matchingTracks.length;
                 
-                result = { status: 'success', coverUrl: coverResult.url, syncedTracks: matchingTracks.length };
+                if (coverResult.source === 'cache') cacheHits++;
+                
+                result = { 
+                  status: 'success', 
+                  coverUrl: coverResult.url, 
+                  source: coverResult.source,
+                  syncedTracks: matchingTracks.length 
+                };
                 updated++;
               } else {
                 result = { status: 'failed', message: 'Cover not found' };
@@ -227,7 +251,10 @@ export async function GET(request: NextRequest) {
               }
             }
             
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // 延迟避免请求过快（仅对 API 调用）
+            if (result?.source !== 'cache' && result?.status === 'success') {
+              await new Promise(resolve => setTimeout(resolve, 200));
+            }
 
             results.push({
               id: item.id,
@@ -243,7 +270,9 @@ export async function GET(request: NextRequest) {
               total,
               item: item.title,
               result
-            })}\n\n`));
+            })}
+
+`));
 
           } catch (error) {
             console.error(`[SSE] Error processing "${item.title}":`, error);
@@ -262,7 +291,9 @@ export async function GET(request: NextRequest) {
               total,
               item: item.title,
               result: { status: 'error', message: 'Unknown error' }
-            })}\n\n`));
+            })}
+
+`));
           }
         }
 
@@ -271,11 +302,14 @@ export async function GET(request: NextRequest) {
           type: 'complete', 
           total,
           updated,
+          cacheHits,
           syncedTracks,
           failed,
           results,
-          message: `Completed! ${updated} albums updated, ${syncedTracks} tracks synced`
-        })}\n\n`));
+          message: `Completed! ${updated} albums updated (${cacheHits} from cache), ${syncedTracks} tracks synced`
+        })}
+
+`));
 
         controller.close();
       },

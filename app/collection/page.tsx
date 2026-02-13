@@ -11,8 +11,11 @@ import { UnifiedImportModal } from '@/components/collection/UnifiedImportModal';
 import { ForceGraph } from '@/components/graph/ForceGraph';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw, LogOut, User, MoreVertical } from 'lucide-react';
+import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw, LogOut, User, MoreVertical, Code } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+// 开发环境标志
+const isDevAutoLogin = process.env.NEXT_PUBLIC_DEV_AUTO_LOGIN === 'true';
 
 interface CoverStatus {
   albums: {
@@ -483,7 +486,7 @@ export default function CollectionPage() {
   };
 
   // 显示加载状态
-  if (status === 'loading') {
+  if (status === 'loading' && !isDevAutoLogin) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background-primary">
         <Disc3 size={48} className="animate-spin text-accent" />
@@ -505,6 +508,16 @@ export default function CollectionPage() {
           <Link href="/collection" className="nav-item active">Collection</Link>
           <div className="w-px h-6 bg-border-color mx-1" />
           <ThemeToggle />
+          {/* 开发模式指示器 */}
+          {isDevAutoLogin && (
+            <>
+              <div className="w-px h-6 bg-border-color mx-1" />
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs">
+                <Code size={12} />
+                <span>Dev Mode</span>
+              </div>
+            </>
+          )}
         </div>
       </nav>
 

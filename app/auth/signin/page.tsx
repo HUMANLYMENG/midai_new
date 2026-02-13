@@ -2,8 +2,12 @@
 
 import { signIn } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Disc3 } from 'lucide-react'
+import { Disc3, Code } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import Link from 'next/link'
+
+// 开发环境标志（在构建时确定）
+const isDevAutoLogin = process.env.NEXT_PUBLIC_DEV_AUTO_LOGIN === 'true'
 
 export default function SignIn() {
   return (
@@ -34,9 +38,31 @@ export default function SignIn() {
                 Welcome to Midai
               </h1>
               <p className="text-foreground-secondary">
-                Sign in to manage your music collection
+                {isDevAutoLogin 
+                  ? 'Development mode - No login required' 
+                  : 'Sign in to manage your music collection'}
               </p>
             </div>
+
+            {/* 开发模式快捷入口 */}
+            {isDevAutoLogin && (
+              <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <div className="flex items-center gap-2 mb-3">
+                  <Code size={18} className="text-amber-500" />
+                  <span className="font-medium text-amber-600 dark:text-amber-400">
+                    Development Mode
+                  </span>
+                </div>
+                <p className="text-sm text-foreground-secondary mb-3">
+                  You are in development mode. Click below to enter without login.
+                </p>
+                <Link href="/collection">
+                  <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+                    Enter as Dev User
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* OAuth Providers */}
             <div className="space-y-3">

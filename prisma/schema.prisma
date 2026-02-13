@@ -97,3 +97,38 @@ model Track {
   @@unique([userId, artist, albumName, title])
   @@index([userId, genre])
 }
+
+// 共享专辑缓存 - 所有用户共享的封面和流派数据
+model SharedAlbumCache {
+  id        Int      @id @default(autoincrement())
+  
+  // 复合键：标准化后的专辑名-艺术家-发行年份
+  albumKey  String   // 专辑名（标准化：小写、去特殊字符）
+  artistKey String   // 艺术家（标准化：小写、去特殊字符）
+  yearKey   String?  // 发行年份（如 "2020"）
+  
+  // 原始信息（用于显示）
+  albumName String   // 原始专辑名
+  artist    String   // 原始艺术家名
+  
+  // 缓存数据
+  coverUrl  String?  // 封面 URL
+  genres    String?  // 流派（逗号分隔）
+  
+  // 数据来源
+  coverSource String? // spotify, itunes, lastfm 等
+  genreSource String? // musicbrainz, spotify 等
+  
+  // 统计信息
+  hitCount    Int      @default(1)      // 命中次数
+  lastHitAt   DateTime @default(now())   // 最后使用时间
+  
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([albumKey, artistKey, yearKey])
+  @@index([albumKey, artistKey])
+  @@index([hitCount])
+  @@index([lastHitAt])
+}

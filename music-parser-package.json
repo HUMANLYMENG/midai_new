@@ -1,0 +1,18 @@
+{
+  "name": "music-link-parser",
+  "version": "1.0.0",
+  "description": "解析 QQ音乐和网易云音乐短链接",
+  "main": "music-link-parser.ts",
+  "scripts": {
+    "parse": "ts-node music-link-parser.ts",
+    "test": "ts-node test-parser.ts"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
+  }
+}
