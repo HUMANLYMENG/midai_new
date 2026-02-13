@@ -1,4 +1,5 @@
-import NextAuth from 'next-auth'
+import NextAuth, { Session, User } from 'next-auth'
+import { JWT } from 'next-auth/jwt'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 
@@ -24,13 +25,13 @@ export const authConfig = {
   // adapter 仅用于数据库会话策略
   providers,
   callbacks: {
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token?.sub) {
         session.user.id = token.sub
       }
       return session
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account }: { token: JWT; account: any }) {
       // 首次登录时保存 account 信息
       if (account) {
         token.accessToken = account.access_token
