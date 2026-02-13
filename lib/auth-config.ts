@@ -24,14 +24,14 @@ export const authConfig = {
   // adapter 仅用于数据库会话策略
   providers,
   callbacks: {
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (session.user && token?.sub) {
         session.user.id = token.sub
       }
       return session
     },
-    async jwt({ token, account, profile }: { token: any; account: any; profile?: any }) {
-      // 首次登录时保存 account 和 profile 信息
+    async jwt({ token, account }) {
+      // 首次登录时保存 account 信息
       if (account) {
         token.accessToken = account.access_token
         token.provider = account.provider
