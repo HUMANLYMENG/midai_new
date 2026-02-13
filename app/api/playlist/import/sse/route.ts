@@ -62,52 +62,72 @@ export async function GET(request: NextRequest) {
           }
 
           const playlist = parseResult.data;
-          const songs = playlist.songs?.slice(0, limit) || [];
+          const allSongs = playlist.songs?.slice(0, limit) || [];
 
-          // 预先检查已存在的歌曲
+          // 预先检查所有歌曲，过滤掉已存在的 - 并发查询，每批10个
+          const songsToImport = [];
           let existingCount = 0;
-          for (const song of songs) {
-            const artist = song.artists[0] || 'Unknown Artist';
-            const albumName = song.album || '';
-            const exists = await prisma.track.findFirst({
-              where: {
-                userId,
-                title: { equals: song.name, mode: 'insensitive' },
-                artist: { equals: artist, mode: 'insensitive' },
-                albumName: { equals: albumName, mode: 'insensitive' },
-              },
-            });
-            if (exists) existingCount++;
+          
+          const CHECK_BATCH_SIZE = 10;
+          for (let i = 0; i < allSongs.length; i += CHECK_BATCH_SIZE) {
+            const batch = allSongs.slice(i, i + CHECK_BATCH_SIZE);
+            
+            // 并发检查这批歌曲
+            const checkResults = await Promise.all(
+              batch.map(async (song) => {
+                const artist = song.artists[0] || 'Unknown Artist';
+                const albumName = song.album || '';
+                const exists = await prisma.track.findFirst({
+                  where: {
+                    userId,
+                    title: { equals: song.name, mode: 'insensitive' },
+                    artist: { equals: artist, mode: 'insensitive' },
+                    albumName: { equals: albumName, mode: 'insensitive' },
+                  },
+                });
+                return { song, exists: !!exists };
+              })
+            );
+            
+            // 分类结果
+            for (const result of checkResults) {
+              if (result.exists) {
+                existingCount++;
+              } else {
+                songsToImport.push(result.song);
+              }
+            }
           }
 
           // 发送歌单信息
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: 'playlist',
             playlistName: playlist.name,
-            total: songs.length,
+            total: allSongs.length,
             existing: existingCount,
+            toImport: songsToImport.length,
           })}
 \n`));
 
           // 统计
           const results = {
             imported: 0,
-            skipped: 0,
+            skipped: existingCount,
             skippedSongs: [] as Array<{ name: string; artist: string; album: string }>,
             errors: [] as string[],
             albumsCreated: 0,
             cacheHits: { cover: 0, genre: 0 },
           };
 
-          // 2. 处理每首歌 - 快速模式，最小化延迟
-          for (let i = 0; i < songs.length; i++) {
-            const song = songs[i];
+          // 2. 只处理未存在的歌曲
+          for (let i = 0; i < songsToImport.length; i++) {
+            const song = songsToImport[i];
             
-            // 发送进度更新
+            // 发送进度更新（显示 1/53 而不是 112/164）
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: 'progress',
               current: i + 1,
-              total: songs.length,
+              total: songsToImport.length,
               song: song.name,
               artist: song.artists[0],
             })}
@@ -242,7 +262,7 @@ export async function GET(request: NextRequest) {
             }
             
             // 最小延迟以保持响应性
-            if (i < songs.length - 1) {
+            if (i < songsToImport.length - 1) {
               await new Promise(resolve => setTimeout(resolve, 50));
             }
           }
@@ -253,7 +273,7 @@ export async function GET(request: NextRequest) {
             success: true,
             data: {
               playlistName: playlist.name,
-              totalSongs: songs.length,
+              totalSongs: allSongs.length,
               ...results,
             },
           })}

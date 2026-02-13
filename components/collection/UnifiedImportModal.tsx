@@ -16,7 +16,7 @@ interface UnifiedImportModalProps {
   onPlaylistImport: (
     url: string, 
     onProgress?: (current: number, total: number) => void,
-    onExisting?: (count: number) => void
+    onExisting?: (existing: number, toImport: number) => void
   ) => Promise<{ 
     success: boolean; 
     imported: number; 
@@ -149,10 +149,12 @@ export function UnifiedImportModal({
     };
     
     try {
-      const res = await onPlaylistImport(url, onProgress, (existing) => {
+      const res = await onPlaylistImport(url, onProgress, (existing, toImport) => {
         setExistingSongs(existing);
-        // 快速跳过已存在的歌曲的显示
-        setImportProgress(prev => ({ ...prev, current: existing }));
+        // 更新总数量为需要导入的数量（如53首），而不是全部164首
+        if (toImport) {
+          setImportProgress(prev => ({ ...prev, total: toImport }));
+        }
       });
       setLinkResult({
         ...res,
@@ -369,14 +371,12 @@ export function UnifiedImportModal({
                     <p className="text-lg font-medium">
                       {importProgress.current >= importProgress.total && importProgress.total > 0
                         ? 'Finalizing...' 
-                        : existingSongs > 0 && importProgress.current <= existingSongs
-                          ? `Skipping ${existingSongs} existing songs...`
-                          : 'Importing...'
+                        : 'Importing...'
                       }
                     </p>
                     <p className="text-sm text-foreground-secondary">
-                      {existingSongs > 0 && importProgress.current <= existingSongs
-                        ? 'Fast-forwarding duplicates'
+                      {existingSongs > 0 
+                        ? `${existingSongs} existing skipped, importing new songs...`
                         : 'Fetching genres from MusicBrainz'
                       }
                     </p>
@@ -400,9 +400,7 @@ export function UnifiedImportModal({
                     <p className="text-center text-sm text-foreground-secondary">
                       {importProgress.current >= importProgress.total && importProgress.total > 0
                         ? 'Almost done...'
-                        : existingSongs > 0 && importProgress.current <= existingSongs
-                          ? `${importProgress.current} / ${existingSongs} existing`
-                          : `${importProgress.current} / ${importProgress.total} songs`
+                        : `${importProgress.current} / ${importProgress.total} songs`
                       }
                     </p>
                   </div>
