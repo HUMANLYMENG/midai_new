@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from './db'
 import { auth } from '@/lib/auth-config'
-
-/**
- * 判断是否为开发环境且启用自动登录
- */
-export function isDevAutoLogin(): boolean {
-  return process.env.NODE_ENV === 'development' && process.env.DEV_AUTO_LOGIN === 'true'
-}
+import { isDevAutoLogin } from './env'
 
 /**
  * 获取当前登录用户 ID

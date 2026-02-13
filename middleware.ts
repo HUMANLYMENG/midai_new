@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/lib/auth-config'
-import { isDevAutoLogin, getOrCreateDefaultUser } from '@/lib/auth'
+import { isDevAutoLogin } from '@/lib/env'
 
 /**
  * Next.js Middleware
  * 
  * 生产环境：保护需要登录的路由
  * 开发环境：如果启用 DEV_AUTO_LOGIN，跳过登录检查
+ * 
+ * 注意：此文件在 Edge Runtime 运行，不能导入 Node.js 模块（如 pg）
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -18,7 +19,9 @@ export async function middleware(request: NextRequest) {
   }
   
   // 生产环境：检查登录状态
-  const session = await auth()
+  // 使用 next-auth 的 session token 检查（不依赖数据库）
+  const sessionToken = request.cookies.get('next-auth.session-token')?.value || 
+                       request.cookies.get('__Secure-next-auth.session-token')?.value
   
   // 需要保护的路由
   const protectedPaths = ['/collection', '/api/albums', '/api/tracks', '/api/import', '/api/covers']
@@ -27,7 +30,7 @@ export async function middleware(request: NextRequest) {
   // 登录页面和认证 API 不需要保护
   const isAuthPath = pathname.startsWith('/auth') || pathname.startsWith('/api/auth')
   
-  if (isProtectedPath && !isAuthPath && !session?.user) {
+  if (isProtectedPath && !isAuthPath && !sessionToken) {
     // 未登录，重定向到登录页面
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -59,6 +62,7 @@ export const config = {
     '/api/genres/:path*',
     '/api/stats/:path*',
     '/api/admin/:path*',
+    '/api/cache/:path*',
     
     // 排除静态资源和 Next.js 内部路由
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

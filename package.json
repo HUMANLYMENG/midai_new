@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^6.0.0",
     "album-art": "^4.0.0",
     "axios": "^1.13.5",
@@ -23,6 +24,7 @@
     "next": "15.1.0",
     "next-auth": "^5.0.0-beta.30",
     "papaparse": "^5.4.1",
+    "pg": "^8.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.2"
