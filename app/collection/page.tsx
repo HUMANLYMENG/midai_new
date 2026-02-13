@@ -26,6 +26,17 @@ interface CoverStatus {
   withoutCover: number; // 只统计专辑缺失封面的数量
 }
 
+interface GenreStatus {
+  tracks: {
+    total: number;
+    missing: number;
+  };
+  albums: {
+    total: number;
+    missing: number;
+  };
+}
+
 interface BatchProgress {
   isRunning: boolean;
   current: number;
@@ -55,6 +66,16 @@ export default function CollectionPage() {
   });
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [imageRefreshKey, setImageRefreshKey] = useState(0);
+  
+  // Genre fix status
+  const [genreStatus, setGenreStatus] = useState<GenreStatus | null>(null);
+  const [genreFixProgress, setGenreFixProgress] = useState<BatchProgress>({
+    isRunning: false,
+    current: 0,
+    total: 0,
+    message: '',
+  });
+  const [showGenreFixModal, setShowGenreFixModal] = useState(false);
 
   // 检查登录状态（开发测试时禁用跳转）
   // useEffect(() => {
@@ -138,11 +159,22 @@ export default function CollectionPage() {
     }
   }, []);
 
+  const fetchGenreStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/genres/fix', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success) setGenreStatus(data.data);
+    } catch (error) {
+      console.error('Failed to fetch genre status:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAlbums();
     fetchTracks();
     fetchCoverStatus();
-  }, [fetchAlbums, fetchTracks, fetchCoverStatus]);
+    fetchGenreStatus();
+  }, [fetchAlbums, fetchTracks, fetchCoverStatus, fetchGenreStatus]);
 
   const handleSubmit = async (formData: AlbumInput | TrackInput, type: CollectionItemType) => {
     try {
@@ -341,6 +373,102 @@ export default function CollectionPage() {
     } catch (error) {
       console.error('Batch fetch error:', error);
       setBatchProgress({
+        isRunning: false,
+        current: 0,
+        total: 0,
+        message: 'Network error',
+      });
+    }
+  };
+
+  const handleFixMissingGenres = async () => {
+    setGenreFixProgress({
+      isRunning: true,
+      current: 0,
+      total: 0,
+      message: 'Fetching missing genres...',
+    });
+    setShowGenreFixModal(true);
+
+    try {
+      const eventSource = new EventSource('/api/genres/fix/sse?type=both&mode=missing');
+      
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+          case 'start':
+            setGenreFixProgress(prev => ({
+              ...prev,
+              message: data.message,
+            }));
+            break;
+            
+          case 'total':
+            setGenreFixProgress(prev => ({
+              ...prev,
+              total: data.total,
+              message: `Found ${data.total} items to fix`,
+            }));
+            break;
+            
+          case 'progress':
+            setGenreFixProgress(prev => ({
+              ...prev,
+              current: data.current,
+              total: data.total,
+              message: `Processing: ${data.item || data.current + '/' + data.total}`,
+            }));
+            break;
+            
+          case 'batch':
+            setGenreFixProgress(prev => ({
+              ...prev,
+              current: data.completed,
+              message: `Batch ${data.batch}: ${data.message}`,
+            }));
+            break;
+            
+          case 'complete':
+            eventSource.close();
+            setGenreFixProgress({
+              isRunning: false,
+              current: data.total,
+              total: data.total,
+              message: data.message,
+            });
+            // 刷新数据
+            fetchAlbums();
+            fetchTracks();
+            fetchGenreStatus();
+            break;
+            
+          case 'error':
+            eventSource.close();
+            setGenreFixProgress({
+              isRunning: false,
+              current: 0,
+              total: 0,
+              message: `Error: ${data.message}`,
+            });
+            break;
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        console.error('Genre fix SSE error:', error);
+        eventSource.close();
+        setGenreFixProgress({
+          isRunning: false,
+          current: 0,
+          total: 0,
+          message: 'Connection error',
+        });
+      };
+      
+    } catch (error) {
+      console.error('Genre fix error:', error);
+      setGenreFixProgress({
         isRunning: false,
         current: 0,
         total: 0,
@@ -591,6 +719,24 @@ export default function CollectionPage() {
                 Get {coverStatus.withoutCover} Album Covers
               </Button>
             )}
+            {/* 修复缺失流派按钮 - 当有需要时显示 */}
+            {genreStatus && (genreStatus.albums.missing > 0 || genreStatus.tracks.missing > 0) && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleFixMissingGenres}
+                disabled={genreFixProgress.isRunning}
+                className="flex items-center gap-1"
+                title={`修复 ${genreStatus.albums.missing + genreStatus.tracks.missing} 个缺失流派的记录`}
+              >
+                {genreFixProgress.isRunning ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Disc3 size={14} />
+                )}
+                Fix {genreStatus.albums.missing + genreStatus.tracks.missing} Genres
+              </Button>
+            )}
             <Button variant="secondary" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </Button>
@@ -683,6 +829,52 @@ export default function CollectionPage() {
                 <Button 
                   className="w-full" 
                   onClick={() => setShowBatchModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Genre Fix Progress Modal */}
+      {showGenreFixModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-background-secondary rounded-2xl p-6 w-96 border border-border-color shadow-xl"
+          >
+            <h3 className="text-lg font-semibold mb-4">Fixing Genres</h3>
+            
+            {genreFixProgress.isRunning ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 size={24} className="animate-spin text-accent" />
+                  <span>{genreFixProgress.message}</span>
+                </div>
+                <div className="h-2 bg-background-tertiary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-accent transition-all duration-300"
+                    style={{ 
+                      width: `${genreFixProgress.total > 0 ? (genreFixProgress.current / genreFixProgress.total) * 100 : 0}%` 
+                    }}
+                  />
+                </div>
+                <p className="text-sm text-foreground-muted text-center">
+                  {genreFixProgress.current} / {genreFixProgress.total}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-green-500">
+                  <RefreshCw size={20} />
+                  <span>{genreFixProgress.message}</span>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => setShowGenreFixModal(false)}
                 >
                   Close
                 </Button>

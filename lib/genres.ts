@@ -128,8 +128,8 @@ export function getGenreColor(genre: string): string {
 
 // 解析流派字符串为数组
 export function parseGenres(genreString?: string): string[] {
-  if (!genreString) return ['undefined'];
-  return genreString.split(/[,/]/).map(g => g.trim().toLowerCase());
+  if (!genreString || genreString.trim() === '' || genreString === 'undefined') return [];
+  return genreString.split(/[,/]/).map(g => g.trim().toLowerCase()).filter(g => g && g !== 'undefined');
 }
 
 // 获取主流派（用于图例）
