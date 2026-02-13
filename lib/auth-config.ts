@@ -19,29 +19,24 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
   }))
 }
 
-// 延迟加载 PrismaAdapter（避免 Edge Runtime 问题）
-let adapter: any = undefined
-if (process.env.NEXT_RUNTIME !== 'edge' && typeof window === 'undefined') {
-  try {
-    const { PrismaAdapter } = require('@auth/prisma-adapter')
-    const { prisma } = require('@/lib/db')
-    adapter = PrismaAdapter(prisma)
-  } catch (e) {
-    console.warn('Failed to load PrismaAdapter:', e)
-  }
-}
-
 export const authConfig = {
-  adapter,
+  // 注意：使用 JWT 策略时不应设置 adapter
+  // adapter 仅用于数据库会话策略
   providers,
   callbacks: {
-    async session({ session, user, token }: { session: any; user: any; token: any }) {
-      if (session.user) {
-        // JWT strategy: use token.sub as user id
-        // Database strategy: use user.id
-        session.user.id = token?.sub || user?.id || session.user.id
+    async session({ session, token }: { session: any; token: any }) {
+      if (session.user && token?.sub) {
+        session.user.id = token.sub
       }
       return session
+    },
+    async jwt({ token, account, profile }: { token: any; account: any; profile?: any }) {
+      // 首次登录时保存 account 和 profile 信息
+      if (account) {
+        token.accessToken = account.access_token
+        token.provider = account.provider
+      }
+      return token
     },
     async signIn() {
       return true
@@ -52,10 +47,12 @@ export const authConfig = {
     error: '/auth/error',
   },
   session: {
-    // Use JWT strategy to avoid Edge Runtime issues with database sessions
+    // 使用 JWT 策略避免 Edge Runtime 问题和数据库依赖
     strategy: 'jwt' as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  // 添加 debug 模式帮助诊断问题（生产环境可以关闭）
+  debug: process.env.NODE_ENV === 'development',
 }
 
 // Create auth instance for use in other files
