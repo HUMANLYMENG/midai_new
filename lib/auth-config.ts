@@ -1,6 +1,4 @@
 import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { prisma } from '@/lib/db'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
 
@@ -21,13 +19,25 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
   }))
 }
 
+// 延迟加载 PrismaAdapter（避免 Edge Runtime 问题）
+let adapter: any = undefined
+if (process.env.NEXT_RUNTIME !== 'edge' && typeof window === 'undefined') {
+  try {
+    const { PrismaAdapter } = require('@auth/prisma-adapter')
+    const { prisma } = require('@/lib/db')
+    adapter = PrismaAdapter(prisma)
+  } catch (e) {
+    console.warn('Failed to load PrismaAdapter:', e)
+  }
+}
+
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
+  adapter,
   providers,
   callbacks: {
     async session({ session, user }: { session: any; user: any }) {
       if (session.user) {
-        session.user.id = user.id
+        session.user.id = user?.id || session.user.id
       }
       return session
     },
