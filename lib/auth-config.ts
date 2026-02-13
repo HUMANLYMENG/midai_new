@@ -21,6 +21,7 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
 
 export const authConfig = {
   providers,
+  trustHost: true,
   callbacks: {
     async session(params: any) {
       const { session, token } = params
