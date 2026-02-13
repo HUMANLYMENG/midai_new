@@ -253,59 +253,64 @@ export default function CollectionPage() {
     url: string, 
     onProgress?: (current: number, total: number) => void
   ) => {
-    // Get preview first to know total count
-    const previewRes = await fetch('/api/playlist/parse', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
+    return new Promise<{ 
+      success: boolean; 
+      imported: number; 
+      skipped: number; 
+      errors: string[];
+      playlistName?: string;
+    }>((resolve, reject) => {
+      const encodedUrl = encodeURIComponent(url);
+      const eventSource = new EventSource(`/api/playlist/import/sse?url=${encodedUrl}`);
+      
+      let playlistName = '';
+      let totalSongs = 0;
+      let imported = 0;
+      let skipped = 0;
+      const errors: string[] = [];
+      
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+          case 'playlist':
+            playlistName = data.playlistName;
+            totalSongs = data.total;
+            break;
+            
+          case 'progress':
+            if (onProgress) {
+              onProgress(data.current, data.total);
+            }
+            break;
+            
+          case 'complete':
+            eventSource.close();
+            const results = data.data;
+            // Refresh data
+            Promise.all([fetchAlbums(), fetchTracks(), fetchCoverStatus()]).then(() => {
+              resolve({
+                success: true,
+                imported: results.imported,
+                skipped: results.skipped,
+                errors: results.errors,
+                playlistName: results.playlistName,
+              });
+            });
+            break;
+            
+          case 'error':
+            eventSource.close();
+            reject(new Error(data.error || 'Import failed'));
+            break;
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        eventSource.close();
+        reject(new Error('Connection error'));
+      };
     });
-    const previewData = await previewRes.json();
-    const totalSongs = previewData.data?.songCount || 0;
-    
-    // Start progress simulation
-    let progressInterval: NodeJS.Timeout | undefined;
-    if (onProgress) {
-      let current = 0;
-      progressInterval = setInterval(() => {
-        current += 1;
-        if (current <= totalSongs) {
-          onProgress(current, totalSongs);
-        }
-        if (current >= totalSongs) {
-          clearInterval(progressInterval);
-        }
-      }, 1100); // Match the server-side rate limit
-    }
-    
-    try {
-      const res = await fetch('/api/playlist/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      
-      const data = await res.json();
-      
-      // Clear interval and set final progress
-      if (progressInterval) clearInterval(progressInterval);
-      if (onProgress) onProgress(totalSongs, totalSongs);
-      
-      if (data.success) {
-        await Promise.all([fetchAlbums(), fetchTracks(), fetchCoverStatus()]);
-        return {
-          success: true,
-          imported: data.data.imported,
-          skipped: data.data.skipped,
-          errors: data.data.errors,
-          playlistName: data.data.playlistName,
-        };
-      }
-      
-      throw new Error(data.error || 'Import failed');
-    } catch (error) {
-      if (progressInterval) clearInterval(progressInterval);
-      throw error;
-    }
   };
 
   const handleBatchFetchCovers = async (force: boolean = false) => {
