@@ -259,15 +259,15 @@ export default function CollectionPage() {
       skipped: number; 
       errors: string[];
       playlistName?: string;
+      partial?: boolean;
     }>((resolve, reject) => {
       const encodedUrl = encodeURIComponent(url);
       const eventSource = new EventSource(`/api/playlist/import/sse?url=${encodedUrl}`);
       
       let playlistName = '';
       let totalSongs = 0;
-      let imported = 0;
-      let skipped = 0;
-      const errors: string[] = [];
+      let lastProgress = { current: 0, total: 0 };
+      let isCompleted = false;
       
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -279,15 +279,16 @@ export default function CollectionPage() {
             break;
             
           case 'progress':
+            lastProgress = { current: data.current, total: data.total };
             if (onProgress) {
               onProgress(data.current, data.total);
             }
             break;
             
           case 'complete':
+            isCompleted = true;
             eventSource.close();
             const results = data.data;
-            // Refresh data
             Promise.all([fetchAlbums(), fetchTracks(), fetchCoverStatus()]).then(() => {
               resolve({
                 success: true,
@@ -295,6 +296,7 @@ export default function CollectionPage() {
                 skipped: results.skipped,
                 errors: results.errors,
                 playlistName: results.playlistName,
+                partial: false,
               });
             });
             break;
@@ -308,7 +310,21 @@ export default function CollectionPage() {
       
       eventSource.onerror = (error) => {
         eventSource.close();
-        reject(new Error('Connection error'));
+        // 如果已经收到过进度，说明是部分导入成功
+        if (lastProgress.current > 0) {
+          Promise.all([fetchAlbums(), fetchTracks(), fetchCoverStatus()]).then(() => {
+            resolve({
+              success: true,
+              imported: lastProgress.current,
+              skipped: 0,
+              errors: ['Connection interrupted. Some songs may have been imported successfully.'],
+              playlistName: playlistName,
+              partial: true,
+            });
+          });
+        } else {
+          reject(new Error('Connection error'));
+        }
       };
     });
   };

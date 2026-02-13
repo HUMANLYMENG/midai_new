@@ -19,6 +19,7 @@ interface UnifiedImportModalProps {
     skipped: number; 
     errors: string[];
     playlistName?: string;
+    partial?: boolean;
   }>;
   onCsvImport: (file: File) => Promise<{ imported: number; skipped: number; errors: string[] }>;
 }
@@ -55,6 +56,7 @@ export function UnifiedImportModal({
     skippedSongs?: Array<{ name: string; artist: string; album: string }>;
     totalSongs?: number;
     errors: string[]; 
+    partial?: boolean;
   } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -142,10 +144,20 @@ export function UnifiedImportModal({
     
     try {
       const res = await onPlaylistImport(url, onProgress);
-      setLinkResult(res);
+      setLinkResult({
+        ...res,
+        totalSongs: linkPreview?.songCount,
+      });
       setLinkStep('result');
     } catch (error) {
-      setLinkStep('preview');
+      setLinkResult({
+        success: false,
+        imported: 0,
+        skipped: 0,
+        errors: ['Import failed. Please try again.'],
+        totalSongs: linkPreview?.songCount,
+      });
+      setLinkStep('result');
     } finally {
       setIsImporting(false);
     }
@@ -383,11 +395,15 @@ export function UnifiedImportModal({
               {linkStep === 'result' && linkResult && (
                 <div className="space-y-4">
                   {/* Summary */}
-                  <div className={`flex items-center gap-3 p-4 rounded-lg ${linkResult.success ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                    {linkResult.success ? <CheckCircle size={24} className="text-green-500" /> : <AlertCircle size={24} className="text-red-500" />}
+                  <div className={`flex items-center gap-3 p-4 rounded-lg ${linkResult.success ? 'bg-green-500/10' : 'bg-red-500/10'} ${linkResult.partial ? 'bg-amber-500/10' : ''}`}>
+                    {linkResult.success ? (
+                      linkResult.partial ? <AlertCircle size={24} className="text-amber-500" /> : <CheckCircle size={24} className="text-green-500" />
+                    ) : (
+                      <AlertCircle size={24} className="text-red-500" />
+                    )}
                     <div>
-                      <p className={`text-sm font-medium ${linkResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                        {linkResult.success ? 'Import completed!' : 'Import failed'}
+                      <p className={`text-sm font-medium ${linkResult.success ? (linkResult.partial ? 'text-amber-400' : 'text-green-400') : 'text-red-400'}`}>
+                        {linkResult.success ? (linkResult.partial ? 'Import interrupted' : 'Import completed!') : 'Import failed'}
                       </p>
                       <p className="text-xs text-foreground-secondary">
                         {linkResult.imported} imported, {linkResult.skipped} skipped
@@ -395,6 +411,16 @@ export function UnifiedImportModal({
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Partial Import Warning */}
+                  {linkResult.partial && (
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <p className="text-xs text-amber-400">
+                        Import was interrupted due to timeout. {linkResult.imported} songs were successfully imported. 
+                        You can re-import the same playlist to continue (duplicate songs will be skipped).
+                      </p>
+                    </div>
+                  )}
 
                   {/* Skipped Songs List */}
                   {linkResult.skippedSongs && linkResult.skippedSongs.length > 0 && (
