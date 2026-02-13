@@ -2,122 +2,224 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ReactNode, useEffect } from 'react';
-import { Disc3, ArrowRight, Music2, Share2 } from 'lucide-react';
+import { ReactNode, useEffect, useState } from 'react';
+import { Disc3, ArrowRight, Music2, Library, Users, Tag, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { initTheme } from '@/lib/theme';
 
-function FeatureCard({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
+interface StatsData {
+  counts: { albums: number; tracks: number; artists: number; genres: number };
+  topGenres: { name: string; count: number }[];
+  recentAlbums: { id: number; title: string; artist: string; coverUrl: string | null }[];
+}
+
+function StatCard({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
-    <div className="p-6 rounded-2xl bg-background-secondary/50 border border-border-color hover:border-accent/30 transition-all duration-300 group">
-      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent mb-4 group-hover:scale-110 transition-transform duration-300">
-        {icon}
+    <div className="p-4 rounded-xl bg-background-secondary/30 border border-border-color/50">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">{icon}</div>
+        <div>
+          <div className="text-2xl font-bold text-foreground-primary">{value.toLocaleString()}</div>
+          <div className="text-xs text-foreground-secondary">{label}</div>
+        </div>
       </div>
-      <h3 className="text-lg font-semibold text-foreground-primary mb-2">{title}</h3>
-      <p className="text-sm text-foreground-secondary">{description}</p>
     </div>
   );
 }
 
+function AlbumCard({ album }: { album: StatsData['recentAlbums'][0] }) {
+  return (
+    <Link href="/collection" className="flex-shrink-0 w-36 group">
+      <div className="relative aspect-square rounded-lg overflow-hidden mb-2 bg-background-secondary">
+        {album.coverUrl ? (
+          <img src={album.coverUrl} alt={album.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-accent/20 to-purple-500/20">
+            <Disc3 size={36} className="text-accent/50" />
+          </div>
+        )}
+      </div>
+      <h4 className="text-sm font-medium text-foreground-primary truncate group-hover:text-accent transition-colors">{album.title}</h4>
+      <p className="text-xs text-foreground-secondary truncate">{album.artist}</p>
+    </Link>
+  );
+}
+
+function GenreTag({ genre }: { genre: StatsData['topGenres'][0] }) {
+  return (
+    <span className="px-3 py-1.5 rounded-full bg-background-secondary/50 border border-border-color/50 hover:border-accent/50 hover:bg-accent/10 transition-all cursor-pointer text-sm text-foreground-secondary hover:text-accent">
+      {genre.name}
+      <span className="ml-1 text-xs text-foreground-muted">({genre.count})</span>
+    </span>
+  );
+}
+
 export default function HomePage() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [titleText, setTitleText] = useState('');
+  const fullTitle = 'See How Your Music Connects';
+
   useEffect(() => {
     initTheme();
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setStats({
+            counts: data.data.counts || { albums: 0, tracks: 0, artists: 0, genres: 0 },
+            topGenres: data.data.topGenres || [],
+            recentAlbums: data.data.recentAlbums || [],
+          });
+        }
+      });
+
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index <= fullTitle.length) {
+        setTitleText(fullTitle.slice(0, index));
+        index++;
+      } else {
+        clearInterval(timer);
+      }
+    }, 120);
+    return () => clearInterval(timer);
   }, []);
 
+  const hasData = stats && stats.counts.albums > 0;
+
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
+    <div className="min-h-screen bg-background-primary flex flex-col">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-background-primary via-background-primary to-accent/5" />
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-3xl animate-pulse" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full bg-gradient-to-r from-accent/10 to-pink-500/10 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
       {/* Navigation */}
-      <nav className="nav-capsule">
-        <Link href="/" className="nav-item active">
-          Home
-        </Link>
-        <Link href="/collection" className="nav-item">
-          Collection
-        </Link>
-        <div className="w-px h-6 bg-border-color mx-1" />
-        <ThemeToggle />
+      <nav className="fixed top-4 left-0 right-0 z-50 flex justify-center">
+        <div className="flex items-center gap-2 px-4 py-2 nav-capsule">
+          <Link href="/" className="nav-item active">Home</Link>
+          <Link href="/collection" className="nav-item">Collection</Link>
+          <div className="w-px h-6 bg-border-color mx-1" />
+          <ThemeToggle />
+        </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex items-center justify-center px-6 pt-24 pb-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-8">
-              <Disc3 size={16} />
-              <span>Visual Music Collection</span>
-            </div>
-          </motion.div>
-
+      {/* Hero Section - Compact */}
+      <section className="relative pt-32 pb-8 px-6">
+        <div className="max-w-5xl mx-auto text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold text-foreground-primary mb-6 tracking-tight"
+            transition={{ duration: 0.5 }}
+            className="text-4xl md:text-6xl font-bold mb-3 tracking-tight"
           >
-            Discover Your
-            <br />
-            <span className="text-accent">Music Universe</span>
+            <span className="text-foreground-primary"></span>
+            <span className="bg-gradient-to-r from-accent via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              {titleText}
+              <span className="animate-pulse">|</span>
+            </span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-foreground-secondary mb-12 max-w-2xl mx-auto"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-foreground-secondary mb-6 max-w-xl mx-auto"
           >
-            Midai helps you organize your album collection and explore connections 
-            between artists and genres through an interactive visualization.
+            Your personal sonic map
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <Link href="/collection">
               <Button size="lg" className="flex items-center gap-2">
+                <Library size={18} />
                 Open Collection
                 <ArrowRight size={18} />
               </Button>
             </Link>
           </motion.div>
-
-          {/* Features */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20"
-          >
-            <FeatureCard
-              icon={<Disc3 size={24} />}
-              title="Organize"
-              description="Import and manage your album collection with ease"
-            />
-            <FeatureCard
-              icon={<Music2 size={24} />}
-              title="Visualize"
-              description="Explore genre connections through interactive graphs"
-            />
-            <FeatureCard
-              icon={<Share2 size={24} />}
-              title="Discover"
-              description="Find new music based on your collection's genres"
-            />
-          </motion.div>
         </div>
-      </main>
+      </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border-color py-6 px-6">
-        <div className="max-w-4xl mx-auto text-center text-sm text-foreground-muted">
-          <p>Midai - Music Collection & Discovery Platform</p>
+      {/* Stats & Content */}
+      {hasData && (
+        <section className="relative px-6 py-12">
+          <div className="max-w-6xl mx-auto">
+            {/* Stats Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8"
+            >
+              <StatCard icon={<Disc3 size={20} />} value={stats.counts.albums} label="Albums" />
+              <StatCard icon={<Headphones size={20} />} value={stats.counts.tracks} label="Tracks" />
+              <StatCard icon={<Users size={20} />} value={stats.counts.artists} label="Artists" />
+              <StatCard icon={<Tag size={20} />} value={stats.counts.genres} label="Genres" />
+            </motion.div>
+
+            {/* Recent Albums - No Title */}
+            {stats.recentAlbums.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="mb-6"
+              >
+                <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
+                  {stats.recentAlbums.map((album) => (
+                    <AlbumCard key={album.id} album={album} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Genre Tags - No Title */}
+            {stats.topGenres.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="flex flex-wrap justify-center gap-2"
+              >
+                {stats.topGenres.slice(0, 10).map((genre) => (
+                  <GenreTag key={genre.name} genre={genre} />
+                ))}
+              </motion.div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Features - Compact at bottom */}
+      <section className="relative py-6 px-6 border-t border-border-color/30 mt-auto">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center gap-8 md:gap-16">
+            {[
+              { icon: <Disc3 size={20} />, title: 'Organize' },
+              { icon: <ArrowRight size={20} />, title: 'Visualize' },
+              { icon: <Music2 size={20} />, title: 'Discover' },
+            ].map((f) => (
+              <div key={f.title} className="flex items-center gap-2 text-foreground-secondary">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">{f.icon}</div>
+                <span className="text-sm font-medium">{f.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer - Minimal */}
+      <footer className="relative py-4 px-6 border-t border-border-color/30">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs text-foreground-muted">Midai - Music Collection Platform</p>
         </div>
       </footer>
     </div>

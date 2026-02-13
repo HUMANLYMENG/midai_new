@@ -499,11 +499,13 @@ export default function CollectionPage() {
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background-primary">
       {/* Navigation */}
-      <nav className="nav-capsule">
-        <Link href="/" className="nav-item">Home</Link>
-        <Link href="/collection" className="nav-item active">Collection</Link>
-        <div className="w-px h-6 bg-border-color mx-1" />
-        <ThemeToggle />
+      <nav className="fixed top-4 left-0 right-0 z-50 flex justify-center">
+        <div className="flex items-center gap-2 px-4 py-2 nav-capsule">
+          <Link href="/" className="nav-item">Home</Link>
+          <Link href="/collection" className="nav-item active">Collection</Link>
+          <div className="w-px h-6 bg-border-color mx-1" />
+          <ThemeToggle />
+        </div>
       </nav>
 
       {/* Main Content */}
