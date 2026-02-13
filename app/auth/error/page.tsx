@@ -1,66 +1,77 @@
 'use client'
 
-import Link from 'next/link'
-import { Disc3, AlertCircle } from 'lucide-react'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { AlertCircle } from 'lucide-react'
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
-  const errorMessages: Record<string, string> = {
-    Configuration: 'Authentication configuration error. Please check your environment variables.',
-    AccessDenied: 'Access denied. You do not have permission to sign in.',
-    Verification: 'The verification token has expired or is invalid.',
-    Default: 'An authentication error occurred. Please try again.',
+  const getErrorMessage = (errorCode: string | null) => {
+    switch (errorCode) {
+      case 'Configuration':
+        return 'Authentication configuration error. Please check your environment variables.'
+      case 'AccessDenied':
+        return 'Access denied. You do not have permission to sign in.'
+      case 'Verification':
+        return 'The verification link has expired or has already been used.'
+      case 'OAuthSignin':
+        return 'Error signing in with OAuth provider. Please try again.'
+      case 'OAuthCallback':
+        return 'Error processing OAuth callback. Please try again.'
+      case 'OAuthCreateAccount':
+        return 'Error creating account. Please try again.'
+      case 'EmailCreateAccount':
+        return 'Error creating email account. Please try again.'
+      case 'Callback':
+        return 'Error during authentication callback. Please try again.'
+      case 'OAuthAccountNotLinked':
+        return 'This email is already associated with another account.'
+      case 'EmailSignin':
+        return 'Error sending email. Please check your email address.'
+      case 'CredentialsSignin':
+        return 'Invalid credentials. Please check your email and password.'
+      default:
+        return 'An unknown error occurred during authentication. Please try again.'
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      {/* Navigation */}
-      <nav className="nav-capsule">
-        <div className="flex items-center gap-2">
-          <Disc3 size={20} className="text-accent" />
-          <span className="font-semibold">Midai</span>
+    <>
+      <p className="text-foreground-secondary mb-4">
+        {getErrorMessage(error)}
+      </p>
+      {error === 'Configuration' && (
+        <div className="text-sm text-foreground-secondary mb-4 p-3 bg-background-primary rounded-lg">
+          <p className="font-medium mb-2">Common causes:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET</li>
+            <li>Incorrect NEXTAUTH_URL</li>
+            <li>Invalid OAuth callback URL in Google Cloud Console</li>
+          </ul>
         </div>
-      </nav>
+      )}
+    </>
+  )
+}
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md text-center">
-          <div className="p-8 rounded-2xl bg-background-secondary/50 border border-border-color">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 text-red-500 mb-4">
-              <AlertCircle size={32} />
-            </div>
-            
-            <h1 className="text-2xl font-bold text-foreground-primary mb-2">
-              Authentication Error
-            </h1>
-            
-            <p className="text-foreground-secondary mb-6">
-              {errorMessages[error || ''] || errorMessages.Default}
-            </p>
-
-            {error === 'Configuration' && (
-              <div className="text-left text-sm text-foreground-muted mb-6 p-4 bg-background-tertiary rounded-lg">
-                <p className="font-medium mb-2">Common causes:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET</li>
-                  <li>Incorrect NEXTAUTH_URL</li>
-                  <li>Invalid OAuth callback URL in Google Cloud Console</li>
-                </ul>
-              </div>
-            )}
-
-            <Link 
-              href="/auth/signin"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent/90 text-white rounded-lg font-medium transition-colors"
-            >
-              Try Again
-            </Link>
-          </div>
+export default function AuthError() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background-primary">
+      <div className="max-w-md w-full p-8 bg-background-secondary rounded-2xl border border-border-color">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertCircle size={24} className="text-red-500" />
+          <h1 className="text-xl font-bold">Authentication Error</h1>
         </div>
-      </main>
+        <Suspense fallback={<p className="text-foreground-secondary mb-4">Loading error details...</p>}>
+          <AuthErrorContent />
+        </Suspense>
+        <Link href="/auth/signin" className="text-accent hover:underline inline-block">
+          Back to Sign In
+        </Link>
+      </div>
     </div>
   )
 }
