@@ -508,16 +508,34 @@ export default function CollectionPage() {
           <Link href="/collection" className="nav-item active">Collection</Link>
           <div className="w-px h-6 bg-border-color mx-1" />
           <ThemeToggle />
-          {/* 开发模式指示器 */}
-          {isDevAutoLogin && (
-            <>
-              <div className="w-px h-6 bg-border-color mx-1" />
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs">
-                <Code size={12} />
-                <span>Dev Mode</span>
-              </div>
-            </>
-          )}
+          <div className="w-px h-6 bg-border-color mx-1" />
+          {/* 用户信息和退出按钮 */}
+          {session?.user ? (
+            <div className="flex items-center gap-2">
+              {session.user.image && (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  className="w-7 h-7 rounded-full border border-border-color"
+                />
+              )}
+              <span className="text-sm text-foreground-secondary hidden sm:inline">
+                {session.user.name || session.user.email}
+              </span>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="p-1.5 rounded-md hover:bg-background-tertiary text-foreground-muted hover:text-foreground-primary transition-colors"
+                title="Sign out"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : isDevAutoLogin ? (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs">
+              <Code size={12} />
+              <span>Dev Mode</span>
+            </div>
+          ) : null}
         </div>
       </nav>
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { 
   Disc3, Music, Loader2, CheckCircle, AlertCircle, 
-  ExternalLink, Upload, FileText, Link2, FileSpreadsheet, GripVertical
+  ExternalLink, Upload, FileText, Link2, FileSpreadsheet, GripVertical, HelpCircle, X
 } from 'lucide-react';
 import type { SongInfo } from '@/lib/music-link-parser';
 
@@ -56,6 +56,7 @@ export function UnifiedImportModal({
     totalSongs?: number;
     errors: string[]; 
   } | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Simple drag implementation
   const [isDragging, setIsDragging] = useState(false);
@@ -222,6 +223,13 @@ export function UnifiedImportModal({
           <div className="flex items-center gap-2">
             <GripVertical size={18} className="text-foreground-muted" />
             <h2 className="text-lg font-semibold">Import Collection</h2>
+            <button
+              onClick={() => setShowHelp(true)}
+              className="ml-2 p-1 rounded-full hover:bg-background-tertiary text-foreground-muted hover:text-accent transition-colors"
+              title="Help"
+            >
+              <HelpCircle size={16} />
+            </button>
           </div>
           <button onClick={handleClose} className="text-foreground-muted hover:text-foreground-primary transition-colors p-1">
             ✕
@@ -484,6 +492,84 @@ export function UnifiedImportModal({
           )}
         </div>
       </motion.div>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="absolute bg-background-secondary rounded-xl w-[450px] max-h-[80vh] overflow-hidden border border-border-color shadow-xl z-10"
+          style={{ top: '60px', right: '20px' }}
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border-color">
+            <h3 className="font-semibold">Import Format Guide</h3>
+            <button 
+              onClick={() => setShowHelp(false)}
+              className="text-foreground-muted hover:text-foreground-primary transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh]">
+            {/* Link Format */}
+            <div>
+              <h4 className="text-sm font-medium text-accent mb-2 flex items-center gap-2">
+                <Link2 size={14} />
+                Supported Playlist Links
+              </h4>
+              <div className="space-y-2 text-xs text-foreground-secondary">
+                <p className="font-medium text-foreground-primary">QQ Music:</p>
+                <code className="block bg-background-tertiary/50 p-2 rounded text-foreground-muted">
+                  https://c6.y.qq.com/base/fcgi-bin/u?__=xxxxx
+                </code>
+                <code className="block bg-background-tertiary/50 p-2 rounded text-foreground-muted">
+                  https://y.qq.com/n/ryqq/playlist/xxxxx
+                </code>
+                <p className="font-medium text-foreground-primary mt-2">NetEase Cloud Music:</p>
+                <code className="block bg-background-tertiary/50 p-2 rounded text-foreground-muted">
+                  https://163cn.tv/xxxxx
+                </code>
+                <code className="block bg-background-tertiary/50 p-2 rounded text-foreground-muted">
+                  https://music.163.com/playlist?id=xxxxx
+                </code>
+              </div>
+            </div>
+
+            <div className="border-t border-border-color" />
+
+            {/* CSV Format */}
+            <div>
+              <h4 className="text-sm font-medium text-accent mb-2 flex items-center gap-2">
+                <FileSpreadsheet size={14} />
+                CSV File Format
+              </h4>
+              <p className="text-xs text-foreground-secondary mb-2">
+                Required columns: <span className="text-foreground-primary">title, artist</span>
+              </p>
+              <p className="text-xs text-foreground-secondary mb-2">
+                Optional columns: <span className="text-foreground-primary">release_date, genre, length, label, tag, comment, cover</span>
+              </p>
+              <code className="block bg-background-tertiary/50 p-2 rounded text-xs text-foreground-muted overflow-x-auto">
+                title,artist,release_date,genre,length,label<br/>
+                Abbey Road,The Beatles,1969-09-26,Rock,47:23,Apple Records
+              </code>
+            </div>
+
+            <div className="border-t border-border-color" />
+
+            {/* Notes */}
+            <div>
+              <h4 className="text-sm font-medium text-accent mb-2">Notes</h4>
+              <ul className="text-xs text-foreground-secondary space-y-1 list-disc list-inside">
+                <li>Genres will be automatically fetched from MusicBrainz</li>
+                <li>Album covers will be fetched from Spotify</li>
+                <li>Duplicate songs will be skipped automatically</li>
+                <li>CSV file should be UTF-8 encoded</li>
+              </ul>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
