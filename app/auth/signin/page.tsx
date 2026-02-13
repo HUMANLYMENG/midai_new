@@ -70,7 +70,7 @@ export default function SignIn() {
               <Button
                 variant="secondary"
                 className="w-full flex items-center justify-center gap-3"
-                onClick={() => signIn('google', { callbackUrl: '/collection' })}
+                onClick={() => signIn('google', { callbackUrl: '/collection', redirect: true })}
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -97,7 +97,7 @@ export default function SignIn() {
               <Button
                 variant="secondary"
                 className="w-full flex items-center justify-center gap-3"
-                onClick={() => signIn('microsoft-entra-id', { callbackUrl: '/collection' })}
+                onClick={() => signIn('microsoft-entra-id', { callbackUrl: '/collection', redirect: true })}
               >
                 <svg className="w-5 h-5" viewBox="0 0 23 23">
                   <path fill="#f3f3f3" d="M0 0h23v23H0z" />

@@ -31,16 +31,26 @@ export const authConfig = {
       return session
     },
     async jwt(params: any) {
-      const { token, account } = params
+      const { token, account, user } = params
       // 首次登录时保存 account 信息
       if (account) {
         token.accessToken = account.access_token
         token.provider = account.provider
       }
+      // 保存用户 ID
+      if (user) {
+        token.sub = user.id
+      }
       return token
     },
     async signIn() {
       return true
+    },
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      // 允许返回到 callbackUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      if (url.startsWith(baseUrl)) return url
+      return baseUrl
     },
   },
   pages: {
@@ -50,6 +60,19 @@ export const authConfig = {
   session: {
     strategy: 'jwt' as const,
     maxAge: 30 * 24 * 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   debug: process.env.NODE_ENV === 'development',
 }
