@@ -15,6 +15,7 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^6.0.0",
     "album-art": "^4.0.0",
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "d3": "^7.9.0",
     "framer-motion": "^11.0.0",
