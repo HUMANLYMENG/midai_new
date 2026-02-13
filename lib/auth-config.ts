@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
+import { prisma } from './db'
 
 // 动态配置 providers（只有配置了环境变量才启用）
 const providers = []
@@ -20,6 +22,7 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
 }
 
 export const authConfig = {
+  adapter: PrismaAdapter(prisma),
   providers,
   trustHost: true,
   callbacks: {
