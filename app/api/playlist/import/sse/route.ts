@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         // 发送初始消息
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start', message: 'Parsing playlist...' })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start', message: 'Parsing playlist...' })}
+\n`));
 
         try {
           // 1. 解析歌单
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
               type: 'error', 
               error: parseResult.error || 'Failed to parse playlist' 
-            })}\n\n`));
+            })}
+\n`));
             controller.close();
             return;
           }
@@ -53,7 +55,8 @@ export async function GET(request: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
               type: 'error', 
               error: 'URL is not a playlist' 
-            })}\n\n`));
+            })}
+\n`));
             controller.close();
             return;
           }
@@ -66,7 +69,8 @@ export async function GET(request: NextRequest) {
             type: 'playlist',
             playlistName: playlist.name,
             total: songs.length,
-          })}\n\n`));
+          })}
+\n`));
 
           // 统计
           const results = {
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
             cacheHits: { cover: 0, genre: 0 },
           };
 
-          // 2. 处理每首歌
+          // 2. 处理每首歌 - 快速模式，最小化延迟
           for (let i = 0; i < songs.length; i++) {
             const song = songs[i];
             
@@ -89,14 +93,15 @@ export async function GET(request: NextRequest) {
               total: songs.length,
               song: song.name,
               artist: song.artists[0],
-            })}\n\n`));
+            })}
+\n`));
 
             try {
               const artist = song.artists[0] || 'Unknown Artist';
               const albumName = song.album || '';
               const year = song.year ? `${song.year}` : undefined;
 
-              // 1. 从缓存/API 获取流派
+              // 1. 从缓存获取流派（不等待 API）
               let genre = '';
               try {
                 const genreResult = await getGenresWithCache(
@@ -113,10 +118,10 @@ export async function GET(request: NextRequest) {
                   }
                 }
               } catch (e) {
-                console.log(`  Genre lookup failed: ${e}`);
+                // 忽略错误，继续导入
               }
 
-              // 2. 从缓存/API 获取封面
+              // 2. 从缓存获取封面（不等待 API）
               let coverUrl: string | null = null;
               try {
                 if (albumName) {
@@ -129,19 +134,18 @@ export async function GET(request: NextRequest) {
                   }
                 }
               } catch (e) {
-                console.log(`  Cover lookup failed: ${e}`);
+                // 忽略错误，继续导入
               }
 
               // 3. 检查 track 是否已存在
-              const existingTracks = await prisma.track.findMany({
-                where: { userId },
+              const existingTrack = await prisma.track.findFirst({
+                where: {
+                  userId,
+                  title: { equals: song.name, mode: 'insensitive' },
+                  artist: { equals: artist, mode: 'insensitive' },
+                  albumName: { equals: albumName, mode: 'insensitive' },
+                },
               });
-              
-              const existingTrack = existingTracks.find(t => 
-                t.title.toLowerCase() === song.name.toLowerCase() &&
-                t.artist.toLowerCase() === artist.toLowerCase() &&
-                t.albumName.toLowerCase() === albumName.toLowerCase()
-              );
 
               if (existingTrack) {
                 results.skipped++;
@@ -153,20 +157,18 @@ export async function GET(request: NextRequest) {
                 continue;
               }
 
-              // 4. 检查专辑是否存在，不存在则创建
-              let albumId: number | null = null;
+              // 4. 检查专辑是否存在
+              let existingAlbum = null;
               if (albumName && artist) {
-                const userAlbums = await prisma.album.findMany({
-                  where: { userId },
+                existingAlbum = await prisma.album.findFirst({
+                  where: {
+                    userId,
+                    title: { equals: albumName, mode: 'insensitive' },
+                    artist: { equals: artist, mode: 'insensitive' },
+                  },
                 });
-                
-                const existingAlbum = userAlbums.find(a => 
-                  a.title.toLowerCase() === albumName.toLowerCase() &&
-                  a.artist.toLowerCase() === artist.toLowerCase()
-                );
 
                 if (existingAlbum) {
-                  albumId = existingAlbum.id;
                   // 如果专辑没有封面，更新封面
                   if (!existingAlbum.coverUrl && coverUrl) {
                     await prisma.album.update({
@@ -184,7 +186,7 @@ export async function GET(request: NextRequest) {
                 } else {
                   // 创建新专辑
                   try {
-                    const newAlbum = await prisma.album.create({
+                    await prisma.album.create({
                       data: {
                         title: albumName,
                         artist: artist,
@@ -194,10 +196,9 @@ export async function GET(request: NextRequest) {
                         userId: userId,
                       },
                     });
-                    albumId = newAlbum.id;
                     results.albumsCreated++;
                   } catch (e) {
-                    console.error(`  Failed to create album:`, e);
+                    // 忽略创建错误
                   }
                 }
               }
@@ -218,14 +219,14 @@ export async function GET(request: NextRequest) {
 
               results.imported++;
 
-              // 限速：MusicBrainz 限制 1 req/sec
-              if (i < songs.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1200));
-              }
-
             } catch (error: any) {
               const errorMsg = `Failed to import "${song.name}": ${error.message}`;
               results.errors.push(errorMsg);
+            }
+            
+            // 最小延迟以保持响应性
+            if (i < songs.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 50));
             }
           }
 
@@ -238,13 +239,15 @@ export async function GET(request: NextRequest) {
               totalSongs: songs.length,
               ...results,
             },
-          })}\n\n`));
+          })}
+\n`));
 
         } catch (error: any) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: 'error',
             error: error.message || 'Internal server error',
-          })}\n\n`));
+          })}
+\n`));
         } finally {
           controller.close();
         }
