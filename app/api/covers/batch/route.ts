@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { getCurrentUserId, getOrCreateDefaultUser } from '@/lib/auth';
 import { findBestCover } from '@/lib/cover';
 
-// GET /api/covers/batch - 获取封面统计
+// GET /api/covers/batch - 获取封面统计（只统计专辑，单曲从专辑同步）
 export async function GET(request: NextRequest) {
   console.log('[Covers Batch] Getting cover status...');
 
@@ -20,21 +20,13 @@ export async function GET(request: NextRequest) {
     const totalAlbums = await prisma.album.count({ where: { userId } });
     const albumsWithoutCover = await prisma.album.count({ where: { userId, coverUrl: null } });
 
-    const totalTracks = await prisma.track.count({ where: { userId } });
-    const tracksWithoutCover = await prisma.track.count({ where: { userId, coverUrl: null } });
-
-    const totalWithoutCover = albumsWithoutCover + tracksWithoutCover;
-
-    console.log(`[Covers Batch] Status: ${totalAlbums} albums (${albumsWithoutCover} without cover), ${totalTracks} tracks (${tracksWithoutCover} without cover)`);
+    console.log(`[Covers Batch] Status: ${totalAlbums} albums (${albumsWithoutCover} without cover)`);
 
     return NextResponse.json({
       success: true,
       data: {
         albums: { total: totalAlbums, withoutCover: albumsWithoutCover, withCover: totalAlbums - albumsWithoutCover },
-        tracks: { total: totalTracks, withoutCover: tracksWithoutCover, withCover: totalTracks - tracksWithoutCover },
-        total: totalAlbums + totalTracks,
-        withoutCover: totalWithoutCover,
-        withCover: (totalAlbums + totalTracks) - totalWithoutCover,
+        withoutCover: albumsWithoutCover, // 只返回专辑缺失数量
       },
     });
   } catch (error) {
@@ -62,6 +54,9 @@ export async function POST(request: NextRequest) {
 
     const results: any[] = [];
 
+    // 获取所有专辑用于同步单曲
+    const allAlbums = await prisma.album.findMany({ where: { userId } });
+
     // 处理专辑
     if (albumIds && albumIds.length > 0) {
       const albums = await prisma.album.findMany({
@@ -70,6 +65,18 @@ export async function POST(request: NextRequest) {
 
       for (const album of albums) {
         try {
+          // 跳过已有封面的（除非强制刷新）
+          if (album.coverUrl && !force) {
+            results.push({
+              id: album.id,
+              title: album.title,
+              type: 'album',
+              status: 'skipped',
+              message: 'Already has cover',
+            });
+            continue;
+          }
+
           const coverResult = await findBestCover(album.artist, album.title);
 
           if (coverResult?.url) {
@@ -79,15 +86,10 @@ export async function POST(request: NextRequest) {
               data: { coverUrl: coverResult.url },
             });
             
-            // 同时更新该专辑对应的所有 track 的封面
-            // SQLite 不支持 mode: 'insensitive'，先查询再更新
-            const tracksToUpdate = await prisma.track.findMany({
-              where: {
-                userId,
-              },
-            });
-            
-            const matchingTracks = tracksToUpdate.filter(t => 
+            // 同步更新该专辑对应的所有 track 的封面
+            // SQLite 不支持 mode: 'insensitive'，先查询再过滤
+            const allTracks = await prisma.track.findMany({ where: { userId } });
+            const matchingTracks = allTracks.filter(t => 
               t.albumName.toLowerCase() === album.title.toLowerCase() &&
               t.artist.toLowerCase() === album.artist.toLowerCase()
             );
@@ -105,6 +107,7 @@ export async function POST(request: NextRequest) {
               type: 'album',
               status: 'success',
               coverUrl: coverResult.url,
+              syncedTracks: matchingTracks.length,
             });
           } else {
             results.push({
@@ -131,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 处理单曲
+    // 处理单曲 - 只同步专辑封面，不单独获取
     if (trackIds && trackIds.length > 0) {
       const tracks = await prisma.track.findMany({
         where: { id: { in: trackIds }, userId },
@@ -139,21 +142,24 @@ export async function POST(request: NextRequest) {
 
       for (const track of tracks) {
         try {
-          // 使用专辑名搜索封面
-          const searchTitle = track.albumName !== track.title ? track.albumName : track.title;
-          const coverResult = await findBestCover(track.artist, searchTitle);
+          // 查找对应专辑的封面
+          const album = allAlbums.find(a => 
+            a.title.toLowerCase() === track.albumName.toLowerCase() &&
+            a.artist.toLowerCase() === track.artist.toLowerCase()
+          );
 
-          if (coverResult?.url) {
+          if (album?.coverUrl) {
             await prisma.track.update({
               where: { id: track.id },
-              data: { coverUrl: coverResult.url },
+              data: { coverUrl: album.coverUrl },
             });
             results.push({
               id: track.id,
               title: track.title,
               type: 'track',
               status: 'success',
-              coverUrl: coverResult.url,
+              coverUrl: album.coverUrl,
+              source: 'album_sync',
             });
           } else {
             results.push({
@@ -161,11 +167,9 @@ export async function POST(request: NextRequest) {
               title: track.title,
               type: 'track',
               status: 'failed',
-              message: 'Cover not found',
+              message: 'No album cover found to sync',
             });
           }
-
-          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`[Covers Batch] Error processing track "${track.title}":`, error);
           results.push({

@@ -7,25 +7,20 @@ import { useRouter } from 'next/navigation';
 import { Album, AlbumInput, Track, TrackInput, SortOption, CollectionItem, CollectionItemType } from '@/types';
 import { CollectionList } from '@/components/collection/CollectionList';
 import { CollectionForm } from '@/components/collection/CollectionForm';
-import { ImportModal } from '@/components/album/ImportModal';
+import { UnifiedImportModal } from '@/components/collection/UnifiedImportModal';
 import { ForceGraph } from '@/components/graph/ForceGraph';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Plus, Upload, Menu, X, Disc3, ImageIcon, Loader2, RefreshCw, LogOut, User, MoreVertical } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-interface CoverStatusDetail {
-  total: number;
-  withoutCover: number;
-  withCover: number;
-}
-
 interface CoverStatus {
-  albums: CoverStatusDetail;
-  tracks: CoverStatusDetail;
-  total: number;
-  withoutCover: number;
-  withCover: number;
+  albums: {
+    total: number;
+    withoutCover: number;
+    withCover: number;
+  };
+  withoutCover: number; // 只统计专辑缺失封面的数量
 }
 
 interface BatchProgress {
@@ -219,46 +214,127 @@ export default function CollectionPage() {
     throw new Error(data.error);
   };
 
-  const handleBatchFetchCovers = async (force: boolean = false) => {
-    const totalToFetch = coverStatus?.withoutCover || 0;
+  const handlePlaylistImport = async (
+    url: string, 
+    onProgress?: (current: number, total: number) => void
+  ) => {
+    // Get preview first to know total count
+    const previewRes = await fetch('/api/playlist/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const previewData = await previewRes.json();
+    const totalSongs = previewData.data?.songCount || 0;
+    
+    // Start progress simulation
+    let progressInterval: NodeJS.Timeout | undefined;
+    if (onProgress) {
+      let current = 0;
+      progressInterval = setInterval(() => {
+        current += 1;
+        if (current <= totalSongs) {
+          onProgress(current, totalSongs);
+        }
+        if (current >= totalSongs) {
+          clearInterval(progressInterval);
+        }
+      }, 1100); // Match the server-side rate limit
+    }
+    
+    try {
+      const res = await fetch('/api/playlist/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      
+      const data = await res.json();
+      
+      // Clear interval and set final progress
+      if (progressInterval) clearInterval(progressInterval);
+      if (onProgress) onProgress(totalSongs, totalSongs);
+      
+      if (data.success) {
+        await Promise.all([fetchAlbums(), fetchTracks(), fetchCoverStatus()]);
+        return {
+          success: true,
+          imported: data.data.imported,
+          skipped: data.data.skipped,
+          errors: data.data.errors,
+          playlistName: data.data.playlistName,
+        };
+      }
+      
+      throw new Error(data.error || 'Import failed');
+    } catch (error) {
+      if (progressInterval) clearInterval(progressInterval);
+      throw error;
+    }
+  };
 
+  const handleBatchFetchCovers = async (force: boolean = false) => {
     setBatchProgress({
       isRunning: true,
       current: 0,
-      total: totalToFetch,
+      total: 0,
       message: force ? 'Refreshing all covers...' : 'Fetching missing covers...',
     });
     setShowBatchModal(true);
 
     try {
-      const res = await fetch('/api/covers/batch-process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force }),
-      });
+      // 使用 SSE 获取实时进度
+      const eventSource = new EventSource(`/api/covers/batch-process?force=${force}`);
       
-      const data = await res.json();
-
-      if (data.success) {
-        setBatchProgress({
-          isRunning: false,
-          current: data.data.updated,
-          total: data.data.total,
-          message: `Completed! Updated: ${data.data.updated}, Failed: ${data.data.failed}`,
-        });
-        // 刷新数据
-        setImageRefreshKey(prev => prev + 1);
-        fetchAlbums();
-        fetchTracks();
-        fetchCoverStatus();
-      } else {
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+          case 'start':
+            setBatchProgress(prev => ({
+              ...prev,
+              total: data.total,
+              message: data.message,
+            }));
+            break;
+            
+          case 'progress':
+            setBatchProgress(prev => ({
+              ...prev,
+              current: data.current,
+              total: data.total,
+              message: `Processing: ${data.item}`,
+            }));
+            break;
+            
+          case 'complete':
+            eventSource.close();
+            setBatchProgress({
+              isRunning: false,
+              current: data.updated,
+              total: data.total,
+              message: data.message,
+            });
+            // 刷新数据
+            setImageRefreshKey(prev => prev + 1);
+            fetchAlbums();
+            fetchTracks();
+            fetchCoverStatus();
+            break;
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        eventSource.close();
         setBatchProgress({
           isRunning: false,
           current: 0,
           total: 0,
-          message: data.error || 'Failed',
+          message: 'Connection error',
         });
-      }
+      };
+      
     } catch (error) {
       console.error('Batch fetch error:', error);
       setBatchProgress({
@@ -307,45 +383,80 @@ export default function CollectionPage() {
     }
   }, [fetchAlbums, fetchTracks, fetchCoverStatus, selectedItem, highlightedItemId]);
 
-  // 单个项目获取封面
+  // 单个项目获取封面（单曲会从所属专辑同步封面）
   const handleItemFetchCover = useCallback(async (item: CollectionItem, type: CollectionItemType) => {
     try {
       console.log(`[Collection] Fetching cover for: ${item.title}`);
-      const res = await fetch('/api/covers/batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          albumIds: type === 'album' ? [item.id] : [],
-          trackIds: type === 'track' ? [item.id] : [],
-          force: true
-        }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        const result = data.data.results[0];
-        if (result?.status === 'success') {
-          console.log(`[Collection] Cover fetched successfully: ${result.coverUrl}`);
-          setImageRefreshKey(prev => prev + 1);
-          if (type === 'album') {
-            fetchAlbums();
-          } else {
-            fetchTracks();
+      
+      if (type === 'track') {
+        // 单曲：找到对应的专辑，获取/同步专辑封面
+        const track = item as Track;
+        const album = rawAlbums.find(a => 
+          a.title.toLowerCase() === track.albumName.toLowerCase() &&
+          a.artist.toLowerCase() === track.artist.toLowerCase()
+        );
+        
+        if (album) {
+          // 使用专辑的封面
+          const res = await fetch('/api/covers/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              albumIds: [album.id],
+              force: true
+            }),
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            const result = data.data.results[0];
+            if (result?.status === 'success') {
+              console.log(`[Collection] Album cover synced to track: ${result.coverUrl}`);
+              setImageRefreshKey(prev => prev + 1);
+              fetchAlbums();
+              fetchTracks();
+              fetchCoverStatus();
+            } else {
+              alert(`Could not find cover for album "${album.title}"`);
+            }
           }
-          fetchCoverStatus();
         } else {
-          console.log(`[Collection] Cover fetch failed: ${result?.message || 'Unknown error'}`);
-          alert(`Could not find cover for "${item.title}"`);
+          alert(`No matching album found for track "${track.title}"`);
         }
       } else {
-        console.error('[Collection] Cover fetch API error:', data.error);
-        alert('Failed to fetch cover');
+        // 专辑：直接获取封面
+        const res = await fetch('/api/covers/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            albumIds: [item.id],
+            force: true
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const result = data.data.results[0];
+          if (result?.status === 'success') {
+            console.log(`[Collection] Cover fetched successfully: ${result.coverUrl}`);
+            setImageRefreshKey(prev => prev + 1);
+            fetchAlbums();
+            fetchTracks();
+            fetchCoverStatus();
+          } else {
+            console.log(`[Collection] Cover fetch failed: ${result?.message || 'Unknown error'}`);
+            alert(`Could not find cover for "${item.title}"`);
+          }
+        } else {
+          console.error('[Collection] Cover fetch API error:', data.error);
+          alert('Failed to fetch cover');
+        }
       }
     } catch (error) {
       console.error('[Collection] Failed to fetch cover:', error);
       alert('Network error while fetching cover');
     }
-  }, [fetchAlbums, fetchTracks, fetchCoverStatus]);
+  }, [fetchAlbums, fetchTracks, fetchCoverStatus, rawAlbums]);
 
   const handleNodeClick = useCallback((item: Album | Track) => {
     if ('albumName' in item) {
@@ -437,20 +548,20 @@ export default function CollectionPage() {
                 onClick={() => handleBatchFetchCovers(false)}
                 disabled={batchProgress.isRunning}
                 className="flex items-center gap-1"
-                title={`获取 ${coverStatus.withoutCover} 个缺失封面（${coverStatus.albums.withoutCover} 专辑 + ${coverStatus.tracks.withoutCover} 单曲）`}
+                title={`获取 ${coverStatus.withoutCover} 个缺失封面的专辑（对应单曲会自动同步）`}
               >
                 {batchProgress.isRunning ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <ImageIcon size={14} />
                 )}
-                Get {coverStatus.withoutCover} Covers
+                Get {coverStatus.withoutCover} Album Covers
               </Button>
             )}
             <Button variant="secondary" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => setIsImportOpen(true)}>
+            <Button variant="secondary" size="sm" onClick={() => setIsImportOpen(true)} title="Import Collection">
               <Upload size={16} />
             </Button>
             <Button size="sm" onClick={handleAddNew}>
@@ -495,10 +606,11 @@ export default function CollectionPage() {
         onDelete={selectedItem ? handleDelete : undefined}
       />
 
-      <ImportModal
+      <UnifiedImportModal
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
-        onImport={handleImport}
+        onPlaylistImport={handlePlaylistImport}
+        onCsvImport={handleImport}
       />
 
       {/* Batch Progress Modal */}
