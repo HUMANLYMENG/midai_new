@@ -68,7 +68,15 @@ export async function GET(request: NextRequest) {
           const songsToImport = [];
           let existingCount = 0;
           
-          const CHECK_BATCH_SIZE = 10;
+          // 发送开始检查的消息
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+            type: 'checking',
+            message: 'Checking for existing songs...',
+            total: allSongs.length,
+          })}
+\n`));
+          
+          const CHECK_BATCH_SIZE = 10; // 并发检查10首
           for (let i = 0; i < allSongs.length; i += CHECK_BATCH_SIZE) {
             const batch = allSongs.slice(i, i + CHECK_BATCH_SIZE);
             
@@ -97,6 +105,14 @@ export async function GET(request: NextRequest) {
                 songsToImport.push(result.song);
               }
             }
+            
+            // 每批检查完发送进度，保持连接
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'checking_progress',
+              current: Math.min(i + CHECK_BATCH_SIZE, allSongs.length),
+              total: allSongs.length,
+            })}
+\n`));
           }
 
           // 发送歌单信息

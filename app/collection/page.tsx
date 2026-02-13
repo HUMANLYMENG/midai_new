@@ -274,6 +274,14 @@ export default function CollectionPage() {
         const data = JSON.parse(event.data);
         
         switch (data.type) {
+          case 'checking':
+            // 正在检查重复歌曲，可以显示状态
+            break;
+            
+          case 'checking_progress':
+            // 检查进度更新
+            break;
+            
           case 'playlist':
             playlistName = data.playlistName;
             totalSongs = data.total;
