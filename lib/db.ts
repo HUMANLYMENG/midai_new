@@ -1,23 +1,34 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// 创建 Prisma Client
-// 如果是 PostgreSQL，使用 adapter；如果是 SQLite，使用普通客户端
+// 检测是否为 PostgreSQL
+function isPostgres(): boolean {
+  const url = process.env.DATABASE_URL || '';
+  return url.startsWith('postgres') || url.startsWith('postgresql');
+}
+
+// 延迟创建 Prisma Client（避免 Edge Runtime 问题）
 function createPrismaClient(): PrismaClient {
-  const databaseUrl = process.env.DATABASE_URL || '';
-  
-  // 检测是否为 PostgreSQL
-  if (databaseUrl.startsWith('postgres') || databaseUrl.startsWith('postgresql')) {
-    const adapter = new PrismaPg({ connectionString: databaseUrl });
-    return new PrismaClient({ adapter });
+  // 在 Edge Runtime 或非 PostgreSQL 环境下使用普通客户端
+  if (!isPostgres() || process.env.NEXT_RUNTIME === 'edge') {
+    return new PrismaClient();
   }
   
-  // SQLite 或其他数据库使用普通客户端
-  return new PrismaClient();
+  // 在 Node.js Runtime 且 PostgreSQL 环境下使用 adapter
+  try {
+    const { PrismaPg } = require('@prisma/adapter-pg');
+    const adapter = new PrismaPg({ 
+      connectionString: process.env.DATABASE_URL 
+    });
+    return new PrismaClient({ adapter });
+  } catch (e) {
+    // Fallback to regular client if adapter fails
+    console.warn('Failed to load PrismaPg adapter, using regular client');
+    return new PrismaClient();
+  }
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
