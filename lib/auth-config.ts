@@ -1,30 +1,104 @@
 import NextAuth from 'next-auth'
 import { PrismaAdapter } from '@auth/prisma-adapter'
-import Google from 'next-auth/providers/google'
-import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
+import GitHub from 'next-auth/providers/github'
 import { prisma } from './db'
 
 // 动态配置 providers（只有配置了环境变量才启用）
 const providers = []
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  providers.push(Google({
+  providers.push({
+    id: 'google',
+    name: 'Google',
+    type: 'oidc' as const,
+    issuer: 'https://accounts.google.com',
+    authorization: {
+      url: 'https://accounts.google.com/o/oauth2/v2/auth',
+      params: {
+        redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/google'
+      }
+    },
+    token: 'https://oauth2.googleapis.com/token',
+    userinfo: 'https://openidconnect.googleapis.com/v1/userinfo',
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  }))
+    profile(profile: any) {
+      return {
+        id: profile.sub,
+        name: profile.name,
+        email: profile.email,
+        image: profile.picture
+      }
+    }
+  })
 }
 
-if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
-  providers.push(MicrosoftEntraID({
-    clientId: process.env.MICROSOFT_CLIENT_ID,
-    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-  }))
+// Spotify provider with fixed redirect URI
+const spotifyProvider = {
+  id: 'spotify',
+  name: 'Spotify',
+  type: 'oauth' as const,
+  authorization: {
+    url: 'https://accounts.spotify.com/authorize',
+    params: {
+      scope: 'user-read-email user-read-private',
+      redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/spotify'
+    }
+  },
+  token: {
+    url: 'https://accounts.spotify.com/api/token',
+    params: {
+      redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/spotify'
+    }
+  },
+  userinfo: 'https://api.spotify.com/v1/me',
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  profile: (profile: any) => {
+    return {
+      id: profile.id,
+      name: profile.display_name,
+      email: profile.email,
+      image: profile.images?.[0]?.url ?? null
+    }
+  }
+}
+
+if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
+  providers.push(spotifyProvider)
+}
+
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  providers.push({
+    id: 'github',
+    name: 'GitHub',
+    type: 'oauth' as const,
+    authorization: {
+      url: 'https://github.com/login/oauth/authorize',
+      params: {
+        redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/github'
+      }
+    },
+    token: 'https://github.com/login/oauth/access_token',
+    userinfo: 'https://api.github.com/user',
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    profile(profile: any) {
+      return {
+        id: profile.id.toString(),
+        name: profile.name || profile.login,
+        email: profile.email,
+        image: profile.avatar_url
+      }
+    }
+  })
 }
 
 export const authConfig = {
   adapter: PrismaAdapter(prisma),
   providers,
   trustHost: true,
+  basePath: '/api/auth',
   callbacks: {
     async session(params: any) {
       const { session, token } = params
@@ -50,10 +124,14 @@ export const authConfig = {
       return true
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      // 开发环境强制使用 127.0.0.1
+      const devBaseUrl = process.env.NODE_ENV === 'development' 
+        ? (process.env.AUTH_URL || 'http://127.0.0.1:3002')
+        : baseUrl
       // 允许返回到 callbackUrl
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      if (url.startsWith(baseUrl)) return url
-      return baseUrl
+      if (url.startsWith('/')) return `${devBaseUrl}${url}`
+      if (url.startsWith(baseUrl)) return url.replace('localhost:3002', '127.0.0.1:3002')
+      return devBaseUrl
     },
   },
   pages: {
@@ -77,7 +155,7 @@ export const authConfig = {
       },
     },
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: false,
 }
 
 const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
