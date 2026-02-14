@@ -3,6 +3,9 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import GitHub from 'next-auth/providers/github'
 import { prisma } from './db'
 
+// 获取基础 URL（开发环境用 127.0.0.1，生产环境用环境变量）
+const baseUrl = process.env.NEXTAUTH_URL || process.env.AUTH_URL || 'http://127.0.0.1:3002'
+
 // 动态配置 providers（只有配置了环境变量才启用）
 const providers = []
 
@@ -15,7 +18,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     authorization: {
       url: 'https://accounts.google.com/o/oauth2/v2/auth',
       params: {
-        redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/google'
+        redirect_uri: `${baseUrl}/api/auth/callback/google`
       }
     },
     token: 'https://oauth2.googleapis.com/token',
@@ -33,39 +36,37 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   })
 }
 
-// Spotify provider with fixed redirect URI
-const spotifyProvider = {
-  id: 'spotify',
-  name: 'Spotify',
-  type: 'oauth' as const,
-  authorization: {
-    url: 'https://accounts.spotify.com/authorize',
-    params: {
-      scope: 'user-read-email user-read-private',
-      redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/spotify'
-    }
-  },
-  token: {
-    url: 'https://accounts.spotify.com/api/token',
-    params: {
-      redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/spotify'
-    }
-  },
-  userinfo: 'https://api.spotify.com/v1/me',
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  profile: (profile: any) => {
-    return {
-      id: profile.id,
-      name: profile.display_name,
-      email: profile.email,
-      image: profile.images?.[0]?.url ?? null
-    }
-  }
-}
-
+// Spotify provider
 if (process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET) {
-  providers.push(spotifyProvider)
+  providers.push({
+    id: 'spotify',
+    name: 'Spotify',
+    type: 'oauth' as const,
+    authorization: {
+      url: 'https://accounts.spotify.com/authorize',
+      params: {
+        scope: 'user-read-email user-read-private',
+        redirect_uri: `${baseUrl}/api/auth/callback/spotify`
+      }
+    },
+    token: {
+      url: 'https://accounts.spotify.com/api/token',
+      params: {
+        redirect_uri: `${baseUrl}/api/auth/callback/spotify`
+      }
+    },
+    userinfo: 'https://api.spotify.com/v1/me',
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    profile: (profile: any) => {
+      return {
+        id: profile.id,
+        name: profile.display_name,
+        email: profile.email,
+        image: profile.images?.[0]?.url ?? null
+      }
+    }
+  })
 }
 
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
@@ -76,7 +77,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
     authorization: {
       url: 'https://github.com/login/oauth/authorize',
       params: {
-        redirect_uri: 'http://127.0.0.1:3002/api/auth/callback/github'
+        redirect_uri: `${baseUrl}/api/auth/callback/github`
       }
     },
     token: 'https://github.com/login/oauth/access_token',
@@ -123,15 +124,11 @@ export const authConfig = {
     async signIn() {
       return true
     },
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      // 开发环境强制使用 127.0.0.1
-      const devBaseUrl = process.env.NODE_ENV === 'development' 
-        ? (process.env.AUTH_URL || 'http://127.0.0.1:3002')
-        : baseUrl
+    async redirect({ url, baseUrl: redirectBaseUrl }: { url: string; baseUrl: string }) {
       // 允许返回到 callbackUrl
-      if (url.startsWith('/')) return `${devBaseUrl}${url}`
-      if (url.startsWith(baseUrl)) return url.replace('localhost:3002', '127.0.0.1:3002')
-      return devBaseUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      if (url.startsWith(redirectBaseUrl)) return url
+      return baseUrl
     },
   },
   pages: {
