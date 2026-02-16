@@ -1,10 +1,15 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
 
-# ================= 配置区域 =================
-ACCESS_TOKEN = "BQAYt1IAFKmOX-mDcEzQogIVtDIU6Il_t0aZnoo4z8q-WspnOC7kGzkMEWzcNkhXRM9Nj6Iotwgm6_fd4eBrfyeq6WAZmgym7fFNlvefytyJfDNy6DlebBF1yKtxbwYSQOhi00Vhr7Cu7zjZAsOkjjsca8XijDnSz1BjO0LGWMyTeBz2bvOl6ImJfuez10L1q_VHDUoscgAGaI3gUyXMZthBAWPPkEJbhXVh-P2GL2-ecT_0zz950neueg83Eh0rlDMpIg"
-TARGET_URL = "https://api.spotify.com/v1/playlists/4WwBzSY7IxPfQQlw2K7dLC"
-# ===========================================
+# 加载环境变量
+load_dotenv()
+
+# 从环境变量获取配置
+ACCESS_TOKEN = os.getenv('SPOTIFY_ACCESS_TOKEN')
+TARGET_URL = os.getenv('SPOTIFY_PLAYLIST_URL', 'https://api.spotify.com/v1/playlists/4WwBzSY7IxPfQQlw2K7dLC')
+
 
 def parse_spotify_link(url):
     if "playlist/" in url:
@@ -99,5 +104,12 @@ def get_playlist_data(playlist_id, token):
         print(f"❌ 发生错误: {e}")
 
 if __name__ == "__main__":
+    # 检查环境变量
+    if not ACCESS_TOKEN:
+        print("❌ 错误: 请设置环境变量 SPOTIFY_ACCESS_TOKEN")
+        print("\n在 .env 文件中添加:")
+        print("  SPOTIFY_ACCESS_TOKEN=your_access_token_here")
+        exit(1)
+    
     pid = parse_spotify_link(TARGET_URL)
     get_playlist_data(pid, ACCESS_TOKEN)

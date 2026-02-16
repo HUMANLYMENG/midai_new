@@ -1,5 +1,14 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# 从环境变量获取 Access Token
+ACCESS_TOKEN = os.getenv('SPOTIFY_ACCESS_TOKEN')
+
 
 def get_track_details(track_id_or_url, access_token):
     """
@@ -48,52 +57,53 @@ def get_track_details(track_id_or_url, access_token):
 # ================= 使用示例 =================
 
 if __name__ == "__main__":
-    # 填入您的 Access Token
-    MY_TOKEN = "BQAYt1IAFKmOX-mDcEzQogIVtDIU6Il_t0aZnoo4z8q-WspnOC7kGzkMEWzcNkhXRM9Nj6Iotwgm6_fd4eBrfyeq6WAZmgym7fFNlvefytyJfDNy6DlebBF1yKtxbwYSQOhi00Vhr7Cu7zjZAsOkjjsca8XijDnSz1BjO0LGWMyTeBz2bvOl6ImJfuez10L1q_VHDUoscgAGaI3gUyXMZthBAWPPkEJbhXVh-P2GL2-ecT_0zz950neueg83Eh0rlDMpIg"
+    # 检查环境变量
+    if not ACCESS_TOKEN:
+        print("❌ 错误: 请设置环境变量 SPOTIFY_ACCESS_TOKEN")
+        print("\n在 .env 文件中添加:")
+        print("  SPOTIFY_ACCESS_TOKEN=your_access_token_here")
+        exit(1)
     
     # 填入歌曲 ID 或 链接
     # 示例 ID (来自之前的 Kanye West - Everything I Am): 0NrtwAmRAdLxua31SzHvXr
     TRACK_TARGET = "0NrtwAmRAdLxua31SzHvXr"
 
-    if MY_TOKEN != "您的_ACCESS_TOKEN_粘贴在这里":
-        track_data = get_track_details(TRACK_TARGET, MY_TOKEN)
+    track_data = get_track_details(TRACK_TARGET, ACCESS_TOKEN)
+    
+    if track_data:
+        print("\n✅ 获取成功！歌曲详情：")
+        print("=" * 60)
         
-        if track_data:
-            print("\n✅ 获取成功！歌曲详情：")
-            print("=" * 60)
-            
-            # --- 解析基础信息 ---
-            name = track_data.get('name')
-            popularity = track_data.get('popularity')
-            explicit = track_data.get('explicit')
-            
-            # --- 解析艺术家 ---
-            artists = ", ".join([a['name'] for a in track_data.get('artists', [])])
-            
-            # --- 解析专辑 ---
-            album_info = track_data.get('album', {})
-            album_name = album_info.get('name')
-            release_date = album_info.get('release_date')
-            
-            # --- 解析时长 (毫秒 -> 分:秒) ---
-            ms = track_data.get('duration_ms', 0)
-            minutes = (ms // 1000) // 60
-            seconds = (ms // 1000) % 60
-            duration_str = f"{minutes}:{seconds:02d}"
+        # --- 解析基础信息 ---
+        name = track_data.get('name')
+        popularity = track_data.get('popularity')
+        explicit = track_data.get('explicit')
+        
+        # --- 解析艺术家 ---
+        artists = ", ".join([a['name'] for a in track_data.get('artists', [])])
+        
+        # --- 解析专辑 ---
+        album_info = track_data.get('album', {})
+        album_name = album_info.get('name')
+        release_date = album_info.get('release_date')
+        
+        # --- 解析时长 (毫秒 -> 分:秒) ---
+        ms = track_data.get('duration_ms', 0)
+        minutes = (ms // 1000) // 60
+        seconds = (ms // 1000) % 60
+        duration_str = f"{minutes}:{seconds:02d}"
 
-            # --- 打印输出 ---
-            print(f"🎵 歌名: {name}")
-            print(f"🎤 歌手: {artists}")
-            print(f"💿 专辑: {album_name} ({release_date})")
-            print(f"⏳ 时长: {duration_str}")
-            print(f"wmv 热度: {popularity}/100")
-            print(f"⚠️ 脏标: {'是' if explicit else '否'}")
+        # --- 打印输出 ---
+        print(f"🎵 歌名: {name}")
+        print(f"🎤 歌手: {artists}")
+        print(f"💿 专辑: {album_name} ({release_date})")
+        print(f"⏳ 时长: {duration_str}")
+        print(f"🔥 热度: {popularity}/100")
+        print(f"⚠️ 脏标: {'是' if explicit else '否'}")
+        
+        # --- 链接 ---
+        spotify_url = track_data.get('external_urls', {}).get('spotify')
+        if spotify_url:
+            print(f"🔗 链接: {spotify_url}")
             
-            # --- 链接 ---
-            spotify_url = track_data.get('external_urls', {}).get('spotify')
-            if spotify_url:
-                print(f"🔗 链接: {spotify_url}")
-                
-            print("=" * 60)
-    else:
-        print("⚠️ 请先在脚本中填入您的 Access Token！")
+        print("=" * 60)

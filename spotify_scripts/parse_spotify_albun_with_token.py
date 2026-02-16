@@ -1,5 +1,14 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# 从环境变量获取 Access Token
+ACCESS_TOKEN = os.getenv('SPOTIFY_ACCESS_TOKEN')
+
 
 def get_album_details(album_id_or_url, access_token):
     """
@@ -47,54 +56,55 @@ def get_album_details(album_id_or_url, access_token):
 # ================= 使用示例 =================
 
 if __name__ == "__main__":
-    # 填入您的 Access Token
-    MY_TOKEN = "BQAYt1IAFKmOX-mDcEzQogIVtDIU6Il_t0aZnoo4z8q-WspnOC7kGzkMEWzcNkhXRM9Nj6Iotwgm6_fd4eBrfyeq6WAZmgym7fFNlvefytyJfDNy6DlebBF1yKtxbwYSQOhi00Vhr7Cu7zjZAsOkjjsca8XijDnSz1BjO0LGWMyTeBz2bvOl6ImJfuez10L1q_VHDUoscgAGaI3gUyXMZthBAWPPkEJbhXVh-P2GL2-ecT_0zz950neueg83Eh0rlDMpIg"
+    # 检查环境变量
+    if not ACCESS_TOKEN:
+        print("❌ 错误: 请设置环境变量 SPOTIFY_ACCESS_TOKEN")
+        print("\n在 .env 文件中添加:")
+        print("  SPOTIFY_ACCESS_TOKEN=your_access_token_here")
+        exit(1)
 
     # 填入专辑 ID 或 链接
     # 示例 ID (来自您的 Response example): 2up3OPMp9Tb4dAKM2erWXQ
     ALBUM_TARGET = "https://open.spotify.com/album/28IDISyL4r5E5PXP0aQMnl?si=rN5fQLLATfi_TKUeL_nO1A" 
 
-    if MY_TOKEN != "您的_ACCESS_TOKEN_粘贴在这里":
-        album_data = get_album_details(ALBUM_TARGET, MY_TOKEN)
+    album_data = get_album_details(ALBUM_TARGET, ACCESS_TOKEN)
+    
+    if album_data:
+        print("\n✅ 获取成功！专辑详情：")
+        print("=" * 60)
         
-        if album_data:
-            print("\n✅ 获取成功！专辑详情：")
-            print("=" * 60)
+        # 打印基本信息
+        name = album_data.get('name')
+        release_date = album_data.get('release_date')
+        label = album_data.get('label')
+        total_tracks = album_data.get('total_tracks')
+        
+        # 获取艺术家 (可能有多个)
+        artists = ", ".join([a['name'] for a in album_data.get('artists', [])])
+        
+        print(f"💿 专辑名: {name}")
+        print(f"🎤 艺术家: {artists}")
+        print(f"📅 发行日: {release_date}")
+        print(f"🏷️ 发行方: {label}")
+        print(f"🔢 总曲目: {total_tracks} 首")
+        print("-" * 60)
+        
+        # 打印曲目列表 (Standard Structure: tracks -> items)
+        tracks_data = album_data.get('tracks', {})
+        items = tracks_data.get('items', [])
+        
+        print(f"{'#':<4} | {'歌名':<40} | {'时长'}")
+        print("-" * 60)
+        
+        for track in items:
+            track_name = track.get('name', 'Unknown')
+            track_num = track.get('track_number')
             
-            # 打印基本信息
-            name = album_data.get('name')
-            release_date = album_data.get('release_date')
-            label = album_data.get('label')
-            total_tracks = album_data.get('total_tracks')
+            # 毫秒转分秒
+            ms = track.get('duration_ms', 0)
+            minutes = (ms // 1000) // 60
+            seconds = (ms // 1000) % 60
+            duration_str = f"{minutes}:{seconds:02d}"
             
-            # 获取艺术家 (可能有多个)
-            artists = ", ".join([a['name'] for a in album_data.get('artists', [])])
-            
-            print(f"💿 专辑名: {name}")
-            print(f"🎤 艺术家: {artists}")
-            print(f"📅 发行日: {release_date}")
-            print(f"🏷️ 发行方: {label}")
-            print(f"🔢 总曲目: {total_tracks} 首")
-            print("-" * 60)
-            
-            # 打印曲目列表 (Standard Structure: tracks -> items)
-            tracks_data = album_data.get('tracks', {})
-            items = tracks_data.get('items', [])
-            
-            print(f"{'#':<4} | {'歌名':<40} | {'时长'}")
-            print("-" * 60)
-            
-            for track in items:
-                track_name = track.get('name', 'Unknown')
-                track_num = track.get('track_number')
-                
-                # 毫秒转分秒
-                ms = track.get('duration_ms', 0)
-                minutes = (ms // 1000) // 60
-                seconds = (ms // 1000) % 60
-                duration_str = f"{minutes}:{seconds:02d}"
-                
-                print(f"{track_num:<4} | {track_name[:38]:<40} | {duration_str}")
-            print("=" * 60)
-    else:
-        print("请先在脚本中填入您的 Access Token 再运行。")
+            print(f"{track_num:<4} | {track_name[:38]:<40} | {duration_str}")
+        print("=" * 60)

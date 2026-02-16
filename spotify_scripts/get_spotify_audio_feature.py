@@ -7,6 +7,14 @@ Spotify Audio Features 获取工具
 
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# 从环境变量获取 Access Token
+ACCESS_TOKEN = os.getenv('SPOTIFY_ACCESS_TOKEN')
 
 
 def get_audio_features(track_ids, access_token):
@@ -78,10 +86,14 @@ def print_audio_features(data):
 # ============ 使用示例 ============
 
 if __name__ == "__main__":
-    # 替换为你的Spotify Access Token
-    YOUR_ACCESS_TOKEN = "BQBwW7M7hmNTODbR1vLQZkdS0h-f1csmTFuCzUFYFrF6KYOZVAWushAbz7UiVJSR1wNAtgC9LrCvICpXETK6wkVQdMNal3G-hjT1DXjJNOANfgLc7dEYCGFCaYe2ztQG5If679oqy0eFT9448okXSkJ107U8SOyx2VeUa2R31qPoR0WONrXc49eYHzeQujTz_HXsS0oAwk0Fdq-sJxblXpas1ER8zQEBpb1D16oq-3OqtUck3awkAVpgtLgeM6FYrIRReQ"
+    # 检查环境变量
+    if not ACCESS_TOKEN:
+        print("❌ 错误: 请设置环境变量 SPOTIFY_ACCESS_TOKEN")
+        print("\n在 .env 文件中添加:")
+        print("  SPOTIFY_ACCESS_TOKEN=your_access_token_here")
+        exit(1)
     
-    # 示例歌曲ID列表 (来自你的curl示例)
+    # 示例歌曲ID列表
     track_ids = [
         "7ouMYWpwJ422jRcDASZB7P",
         "4VqPOruhp5EdPBeR92t6lQ", 
@@ -93,7 +105,7 @@ if __name__ == "__main__":
     print("="*60)
     
     # 获取audio features
-    result = get_audio_features(track_ids, YOUR_ACCESS_TOKEN)
+    result = get_audio_features(track_ids, ACCESS_TOKEN)
     
     # 打印结果
     if result:

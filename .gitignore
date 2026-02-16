@@ -31,3 +31,6 @@ coverage
 
 # Misc
 *.pem
+
+# Spotify credentials
+spotify_scripts/.env
